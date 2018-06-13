@@ -2464,168 +2464,199 @@ names(Shocks.df)[names(Shocks.df)=="sumofshocksacrossD"] <- "AquacultureAv"
 # Shocks.df <- cbind.data.frame(Shocks.df, sumofshocksacrossD)
 # names(Shocks.df)[names(Shocks.df)=="sumofshocksacrossD"] <- "Inland aquaculture"
 
+Cooks<-rep(Shocks.df$D,16)
+Sector<-rep(c("Crops", "Livestock", "Fisheries", "Aquaculture"),1, each=80)
+Change<-rep(c("Selected Model", "Span=0.3","3 year baseline", "Average=Mean" ), 4, each=20)
+Shock.freq<- c(Shocks.df$CropsNormal, Shocks.df$CropsSpan, Shocks.df$CropsDuration, Shocks.df$CropsAv, Shocks.df$LivestockNormal, Shocks.df$LivestockSpan, Shocks.df$LivestockDuration, Shocks.df$LivestockAv, Shocks.df$FisheriesNormal, Shocks.df$FisheriesSpan, Shocks.df$FisheriesDuration, Shocks.df$FisheriesAv, Shocks.df$AquacultureNormal, Shocks.df$AquacultureSpan, Shocks.df$AquacultureDuration, Shocks.df$AquacultureAv)
+
+Sens.Anal<-cbind.data.frame(Cooks, Sector, Change, Shock.freq)
+Sens.Anal$Change<-factor(Sens.Anal$Change, levels(Sens.Anal$Change)[c(3,4,1,2)])
 
 #Plot sensitivity analysis
-p1<-ggplot(data=Shocks.df, aes(x=D, y=CropsNormal))+geom_bar(stat = "identity")+
-  labs(x="", y="No. of shocks detected", title = "Crops")+
+p1<-ggplot(data=Sens.Anal[Sens.Anal$Sector=="Crops",], aes(x=Cooks, y=Shock.freq))+geom_line(aes(colour=Change), size=1)+
+  labs(x="Cook's Distance threshold", y="No. of shocks detected", title = "Crops", colour="")+
   theme_classic()+
   theme(panel.grid = element_blank(),
         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
   scale_y_continuous(limits=c(0,550))+
   geom_vline(xintercept = 0.3, lty=2, colour="red")
 
-p2<-ggplot(data=Shocks.df, aes(x=D, y=CropsSpan))+geom_bar(stat = "identity")+
-  labs(x="", y="No. of shocks detected")+
+p2<-ggplot(data=Sens.Anal[Sens.Anal$Sector=="Livestock",], aes(x=Cooks, y=Shock.freq))+geom_line(aes(colour=Change), size=1)+
+  labs(x="Cook's Distance threshold", y="No. of shocks detected", title = "Livestock", colour="")+
   theme_classic()+
   theme(panel.grid = element_blank(),
         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
   scale_y_continuous(limits=c(0,550))+
   geom_vline(xintercept = 0.3, lty=2, colour="red")
 
-p3<-ggplot(data=Shocks.df, aes(x=D, y=CropsDuration))+geom_bar(stat = "identity")+
-  labs(x="", y="No. of shocks detected")+
+p3<-ggplot(data=Sens.Anal[Sens.Anal$Sector=="Fisheries",], aes(x=Cooks, y=Shock.freq))+geom_line(aes(colour=Change), size=1)+
+  labs(x="Cook's Distance threshold", y="No. of shocks detected", title = "Fisheries", colour="")+
   theme_classic()+
   theme(panel.grid = element_blank(),
         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
   scale_y_continuous(limits=c(0,550))+
   geom_vline(xintercept = 0.3, lty=2, colour="red")
 
-p4<-ggplot(data=Shocks.df, aes(x=D, y=CropsAv))+geom_bar(stat = "identity")+
-  labs(x="Cooks distance threshold", y="No. of shocks detected")+
+p4<-ggplot(data=Sens.Anal[Sens.Anal$Sector=="Aquaculture",], aes(x=Cooks, y=Shock.freq))+geom_line(aes(colour=Change), size=1)+
+  labs(x="Cook's Distance threshold", y="No. of shocks detected", title = "Aquaculture", colour="")+
   theme_classic()+
   theme(panel.grid = element_blank(),
         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
   scale_y_continuous(limits=c(0,550))+
   geom_vline(xintercept = 0.3, lty=2, colour="red")
 
-cropplot<-ggarrange(p1,p2,p3,p4, ncol=1, nrow = 4, align = "h")
-
-
-
-
-
-p5<-ggplot(data=Shocks.df, aes(x=D, y=LivestockNormal))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "Livestock")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0,550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p6<-ggplot(data=Shocks.df, aes(x=D, y=LivestockSpan))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p7<-ggplot(data=Shocks.df, aes(x=D, y=LivestockDuration))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-
-p8<-ggplot(data=Shocks.df, aes(x=D, y=LivestockAv))+geom_bar(stat = "identity")+
-  labs(x="Cooks distance threshold", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-
-livestockplots<-ggarrange(p5, p6, p7, p8, ncol=1, nrow = 4, align="h")
-
-
-p9<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesNormal))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "Fisheries")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0,550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p10<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesSpan))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p11<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesDuration))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-
-p12<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesAv))+geom_bar(stat = "identity")+
-  labs(x="Cooks distance threshold", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-fishplots<- ggarrange(p9, p10, p11, p12, nrow=4, ncol=1, align = "h")
-
-
-
-p13<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureNormal))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "Aquaculture")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0,550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p14<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureSpan))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-p15<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureDuration))+geom_bar(stat = "identity")+
-  labs(x="", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-
-p16<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureAv))+geom_bar(stat = "identity")+
-  labs(x="Cooks distance threshold", y="", title = "")+
-  theme_classic()+
-  theme(panel.grid = element_blank(),
-        plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
-  scale_y_continuous(limits=c(0, 550))+
-  geom_vline(xintercept = 0.3, lty=2, colour="red")
-
-aquaplots<- ggarrange(p13, p14, p15, p16, nrow=4, ncol=1, align = "h")
-
-toprow<-ggarrange(p1,p5,p9,p13, nrow=1,ncol = 4, align="v")
-toprow<-annotate_figure(toprow, left =text_grob("Selected Model", vjust = 0.5, color="black"))
-
-secondrow<-ggarrange(p2,p6,p10,p14, nrow=1,ncol = 4, align="v")
-secondrow<-annotate_figure(secondrow, left =text_grob("Model span=0.3", vjust = 0.5, color="black"))
-
-thirdrow<-ggarrange(p3,p7,p11,p15, nrow=1,ncol = 4, align="v")
-thirdrow<-annotate_figure(thirdrow, left =text_grob("Baseline = 3 yrs", vjust = 0.5, color="black"))
-
-bottomrow<-ggarrange(p4,p8,p12,p16, nrow=1,ncol = 4, align="v")
-bottomrow<-annotate_figure(bottomrow, left =text_grob("Average = Mean", vjust = 0.5, color="black"))
-
-grid<-ggarrange(toprow, secondrow, thirdrow, bottomrow, ncol=1, nrow = 4, align = "h")
+# p2<-ggplot(data=Shocks.df, aes(x=D, y=CropsSpan))+geom_bar(stat = "identity")+
+#   labs(x="", y="No. of shocks detected")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p3<-ggplot(data=Shocks.df, aes(x=D, y=CropsDuration))+geom_bar(stat = "identity")+
+#   labs(x="", y="No. of shocks detected")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p4<-ggplot(data=Shocks.df, aes(x=D, y=CropsAv))+geom_bar(stat = "identity")+
+#   labs(x="Cooks distance threshold", y="No. of shocks detected")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# cropplot<-ggarrange(p1,p2,p3,p4, ncol=1, nrow = 4, align = "h")
+# 
+# 
+# 
+# 
+# 
+# p5<-ggplot(data=Shocks.df, aes(x=D, y=LivestockNormal))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "Livestock")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p6<-ggplot(data=Shocks.df, aes(x=D, y=LivestockSpan))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p7<-ggplot(data=Shocks.df, aes(x=D, y=LivestockDuration))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# 
+# p8<-ggplot(data=Shocks.df, aes(x=D, y=LivestockAv))+geom_bar(stat = "identity")+
+#   labs(x="Cooks distance threshold", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# 
+# livestockplots<-ggarrange(p5, p6, p7, p8, ncol=1, nrow = 4, align="h")
+# 
+# 
+# p9<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesNormal))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "Fisheries")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p10<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesSpan))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p11<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesDuration))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# 
+# p12<-ggplot(data=Shocks.df, aes(x=D, y=FisheriesAv))+geom_bar(stat = "identity")+
+#   labs(x="Cooks distance threshold", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# fishplots<- ggarrange(p9, p10, p11, p12, nrow=4, ncol=1, align = "h")
+# 
+# 
+# 
+# p13<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureNormal))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "Aquaculture")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0,550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p14<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureSpan))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# p15<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureDuration))+geom_bar(stat = "identity")+
+#   labs(x="", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# 
+# p16<-ggplot(data=Shocks.df, aes(x=D, y=AquacultureAv))+geom_bar(stat = "identity")+
+#   labs(x="Cooks distance threshold", y="", title = "")+
+#   theme_classic()+
+#   theme(panel.grid = element_blank(),
+#         plot.title = element_text(hjust = 0.5, vjust = -0.75, face="bold"))+
+#   scale_y_continuous(limits=c(0, 550))+
+#   geom_vline(xintercept = 0.3, lty=2, colour="red")
+# 
+# aquaplots<- ggarrange(p13, p14, p15, p16, nrow=4, ncol=1, align = "h")
+# 
+# toprow<-ggarrange(p1,p5,p9,p13, nrow=1,ncol = 4, align="v")
+# toprow<-annotate_figure(toprow, left =text_grob("Selected Model", vjust = 0.5, color="black"))
+# 
+# secondrow<-ggarrange(p2,p6,p10,p14, nrow=1,ncol = 4, align="v")
+# secondrow<-annotate_figure(secondrow, left =text_grob("Model span=0.3", vjust = 0.5, color="black"))
+# 
+# thirdrow<-ggarrange(p3,p7,p11,p15, nrow=1,ncol = 4, align="v")
+# thirdrow<-annotate_figure(thirdrow, left =text_grob("Baseline = 3 yrs", vjust = 0.5, color="black"))
+# 
+# bottomrow<-ggarrange(p4,p8,p12,p16, nrow=1,ncol = 4, align="v")
+# bottomrow<-annotate_figure(bottomrow, left =text_grob("Average = Mean", vjust = 0.5, color="black"))
+# 
+grid<-ggarrange(p1, p2, p3, p4, ncol=2, nrow = 2, align = "hv")
 
 ggsave(filename = "Cooksdistance sensitivity.tiff", dpi = 600, device="tiff", width = 10, height=7)
 
@@ -5470,6 +5501,7 @@ cols<-c(terrain_hcl(9, h = c(250, 40), c = 96, l = c(65, 90)),"grey60")
 
 cols<-c("Climate/weather events"="#48A1FF", "Climate/weather & geopolitical/economic events" = "#00BCF4", "Climate/weather events & mismanagement" = "#00CED8", "Geopolitical/economic events" = "#00D9B1", "Mismanagement" = "#00DE81", "Mismanagement & geopolitical/economic events" = "#81DF45", "Mismanagement & policy change" = "#CBDC00", "Policy change" = "#FFD52A", "Other" = "#FFCD7C", "Unknown"= "grey60")
 
+shockcategories$Var1<-factor(shockcategories$Var1, levels(shockcategories$Var1)[c(1:4,6,5,7:10)])
 
 Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(stat="identity")+
   theme_bw()+
@@ -5485,7 +5517,7 @@ Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(st
         legend.background = element_blank(),
         legend.title = element_text(face="bold", size=8),
         plot.margin = unit(c(t=0,r=0,b=0,l=0), "cm"))+
-  scale_fill_manual(values=cols)+
+  scale_fill_brewer(palette = "Spectral")+
   scale_y_continuous(limits = c(0, 1.06))+
   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0, ncol = 1))
 
@@ -5577,13 +5609,16 @@ pies<-ggarrange(pie1, pie2, pie3, pie4, legend = "none", nrow=4, ncol=1, heights
 
 ## SHOCK SIZE AND RECOVERY PLOTS
 ```{r}
-cols<-c("Climate/weather events"="#48A1FF", "Climate/weather & geopolitical/economic events" = "#00BCF4", "Climate/weather events & mismanagement" = "#00CED8", "Geopolitical/economic events" = "#00D9B1", "Mismanagement" = "#00DE81", "Mismanagement & geopolitical/economic events" = "#81DF45", "Mismanagement & policy change" = "#CBDC00", "Policy change" = "#FFD52A", "Other" = "#FFCD7C", "Unknown"= "grey60")
+cols<-c("Climate/weather events"="#9e0142", "Climate/weather & geopolitical/economic events" = "#d53e4f", "Climate/weather events & mismanagement" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b", "Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
+
 
 #change order of Regions
 levels(shockdrivers$Region)
 shockdrivers$Country<-as.character(shockdrivers$Country)
 shockdrivers$Country[shockdrivers$Codes=="PRK"]<-"DPRK"
 shockdrivers$Country<-as.factor(shockdrivers$Country)
+shockdrivers$Category<-factor(shockdrivers$Category, levels(shockdrivers$Category)[c(1:4,6,5,7:10)])
+
 
 
 #MAX SHOCK SIZES
@@ -5611,9 +5646,10 @@ maxrecaqua<-maxrecaqua[maxrecaqua$Recovery2==max(maxrecaqua$Recovery2),]
 
 
 size1<-ggplot(data = shockdrivers[shockdrivers$Sector=="Crops",], aes(x=Region, y=log(AbsMagnitude)))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   scale_x_discrete(drop=FALSE)+
+  scale_y_continuous(limits = c(0,19))+
   theme_bw()+
   theme(panel.grid = element_blank(),
         axis.title.x = element_blank(),
@@ -5623,13 +5659,14 @@ size1<-ggplot(data = shockdrivers[shockdrivers$Sector=="Crops",], aes(x=Region, 
         axis.text.y =   element_text(size=8),
         plot.margin = unit(c(0.2,0.2,0,0), "cm"))+
   labs(y="log(Shock size (T))")+
-  geom_text(data = maxshockscrops, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 1), hjust="inward")
+  geom_text(data = maxshockscrops, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 2), hjust="inward")
 
 size2<-ggplot(data = shockdrivers[shockdrivers$Sector=="Livestock",], aes(x=Region, y=log(AbsMagnitude)))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   theme_bw()+
   scale_x_discrete(drop=FALSE)+
+  scale_y_continuous(limits = c(0,19))+
   theme(panel.grid = element_blank(),
         axis.title.x = element_blank(),
         axis.title.y = element_text(size=8),
@@ -5638,11 +5675,12 @@ size2<-ggplot(data = shockdrivers[shockdrivers$Sector=="Livestock",], aes(x=Regi
         plot.margin = unit(c(0,0.2,0,0), "cm"),
         axis.text.x = element_blank())+
   labs(y="log(Shock size (T))")+
-  geom_text(data = maxshockslivestock, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 1), hjust="inward")
+  geom_text(data = maxshockslivestock, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 2), hjust="inward")
 
 size3<-ggplot(data = shockdrivers[shockdrivers$Sector=="Fisheries",], aes(x=Region, y=log(AbsMagnitude)))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
+  scale_y_continuous(limits = c(0,19))+
   theme_bw()+
   scale_x_discrete(drop=FALSE)+
   theme(panel.grid = element_blank(),
@@ -5653,12 +5691,13 @@ size3<-ggplot(data = shockdrivers[shockdrivers$Sector=="Fisheries",], aes(x=Regi
         axis.text.y =  element_text(size=8),
         plot.margin = unit(c(0,0.2,0,0), "cm"))+
   labs(y="log(Shock size (T))")+
-  geom_text(data = maxshocksfisheries, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 1), hjust="inward")
+  geom_text(data = maxshocksfisheries, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 2), hjust="inward")
 
 size4<-ggplot(data = shockdrivers[shockdrivers$Sector=="Aquaculture",], aes(x=Region, y=log(AbsMagnitude)))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   scale_x_discrete(drop=FALSE)+
+  scale_y_continuous(limits = c(0,19))+
   theme_bw()+
   theme(panel.grid = element_blank(),
         axis.title.y = element_text(size=8),
@@ -5667,7 +5706,7 @@ size4<-ggplot(data = shockdrivers[shockdrivers$Sector=="Aquaculture",], aes(x=Re
         plot.margin = unit(c(0,0.2,0,0), "cm"),
         axis.text.x = element_text(angle=45, size=8, hjust=1, margin=unit(c(0.1,0,0,0), "cm")))+
   labs(y="log(Shock size (T))",x="")+
-  geom_text(data = maxshocksaqua, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 1), hjust="inward")
+  geom_text(data = maxshocksaqua, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 2), hjust="inward")
 
 
 Sizes<-ggarrange(size1, size2, size3, size4, legend = "none", nrow=4, ncol=1, heights=c(1,1,1,1.6), labels = c("b", "e", "i", "l"))
@@ -5676,7 +5715,7 @@ ggsave(filename = "Magnitude.test.tiff", device="tiff", dpi=300, width=7, height
 
 
 Rec1<-ggplot(data = shockdrivers[shockdrivers$Sector=="Crops",], aes(x=Region, y=Recovery2))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   scale_y_continuous(limits = c(0,48))+
   scale_x_discrete(drop=FALSE)+
@@ -5692,7 +5731,7 @@ Rec1<-ggplot(data = shockdrivers[shockdrivers$Sector=="Crops",], aes(x=Region, y
   geom_text(data = maxreccrops, mapping = aes(x=Region, y= Recovery2, label = Country), size=3, position = position_nudge(y = 6), hjust="inward")
 
 Rec2<-ggplot(data = shockdrivers[shockdrivers$Sector=="Livestock",], aes(x=Region, y=Recovery2))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   theme_bw()+
   scale_x_discrete(drop=FALSE)+
@@ -5708,7 +5747,7 @@ Rec2<-ggplot(data = shockdrivers[shockdrivers$Sector=="Livestock",], aes(x=Regio
   geom_text(data = maxreclivestock, mapping = aes(x=Region, y= Recovery2, label = Country), size=3, position = position_nudge(y = 6), hjust="inward")
 
 Rec3<-ggplot(data = shockdrivers[shockdrivers$Sector=="Fisheries",], aes(x=Region, y=Recovery2))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   theme_bw()+
   scale_x_discrete(drop=FALSE)+
@@ -5724,7 +5763,7 @@ Rec3<-ggplot(data = shockdrivers[shockdrivers$Sector=="Fisheries",], aes(x=Regio
   geom_text(data = maxrecfisheries, mapping = aes(x=Region, y= Recovery2, label = Country), size=3, position = position_nudge(y = 6), hjust="inward")
 
 Rec4<-ggplot(data = shockdrivers[shockdrivers$Sector=="Aquaculture",], aes(x=Region, y=Recovery2))+geom_boxplot(outlier.alpha = 0)+
-  geom_jitter(aes(colour=Category), size=1.5, alpha=0.5, width=0.2)+
+  geom_jitter(aes(colour=Category), size=1.8, alpha=0.8, width=0.2)+
   scale_color_manual(values=cols)+
   scale_x_discrete(drop=FALSE)+
   scale_y_continuous(limits = c(0,48))+
@@ -5774,15 +5813,27 @@ row2<-ggarrange( size2, Rec2, nrow = 1, ncol=2, labels = c("c","d"), legend = "n
 row3<-ggarrange( size3, Rec3, nrow = 1, ncol=2, labels = c("e","f"), legend = "none",  font.label = list(size=10))
 row4<-ggarrange(size4, Rec4, nrow = 1, ncol=2, labels = c("g","h"), legend = "none",  font.label = list(size=10))
 
-allnl<-ggarrange(row1, row2, row3, row4, nrow = 4, ncol = 1, legend = "none", heights = c(1.05,1, 1,1.5))
+col1<-ggarrange(size1, size2, size3, size4, nrow = 4, ncol=1, labels = c("a","c", "e", "g"), legend = "none", font.label = list(size=10), heights = c(1,1,1,1.5))
 
-ggsave("drivers combined.test2.tiff", device = "tiff", dpi = 600, width = 17.3, height = 18, units = "cm")
+col1<-annotate_figure(col1, top =text_grob("Shock sizes", vjust = 0.5, color="black"))
+
+col2<-ggarrange(Rec1, Rec2, Rec3, Rec4, nrow = 4, ncol=1, labels = c("b","d", "f", "h"), legend = "none", font.label = list(size=10), heights = c(1,1,1,1.5))
+col2<-annotate_figure(col2, top =text_grob("Recovery times", vjust = 0.5, color="black"))
+
+ggsave(filename = "Magnitude.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
+ggsave(filename = "Recovery.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
+
+
+allnl<-ggarrange(col1, col2, nrow = 1, ncol = 2, legend = "none", widths =c(1,1))
+
+ggsave("drivers combined.test2.tiff", device = "tiff", dpi = 600, width = 17.3, height = 20, units = "cm")
 
 driverlegend<-get_legend(pie1)
 
-ggarrange(allnl, driverlegend, nrow=2, ncol=1, heights = c(1,0.15))
+combosize<-ggarrange(allnl, driverlegend, nrow=2, ncol=1, heights = c(1,0.15), widths = c(1,1.2))
 
-ggsave(filename = "Drivers2.tiff", device="tiff", dpi=600, width=16.3, height=20, units="cm")
+
+ggsave(filename = "Drivers2.tiff", device="tiff", dpi=600, width=16.5, height=20, units="cm")
 
 ```
 
