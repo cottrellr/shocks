@@ -5497,9 +5497,9 @@ write.csv(shockdrivers, file = "Shocks and drivers tidy.csv", row.names = F)
 #PLOTS FOR PROPORTIONAL CONTRIBUTION OF DRIVERS PER SECTOR
 
 ```{r}
-cols<-c(terrain_hcl(9, h = c(250, 40), c = 96, l = c(65, 90)),"grey60")
 
-cols<-c("Climate/weather events"="#48A1FF", "Climate/weather & geopolitical/economic events" = "#00BCF4", "Climate/weather events & mismanagement" = "#00CED8", "Geopolitical/economic events" = "#00D9B1", "Mismanagement" = "#00DE81", "Mismanagement & geopolitical/economic events" = "#81DF45", "Mismanagement & policy change" = "#CBDC00", "Policy change" = "#FFD52A", "Other" = "#FFCD7C", "Unknown"= "grey60")
+
+cols<-c("Climate/weather events"="#9e0142", "Climate/weather & geopolitical/economic events" = "#d53e4f", "Climate/weather events & mismanagement" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b", "Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
 
 shockcategories$Var1<-factor(shockcategories$Var1, levels(shockcategories$Var1)[c(1:4,6,5,7:10)])
 
@@ -5605,6 +5605,46 @@ pie4<-ggplot(data=shockcategories[shockcategories$Var2=="Aquaculture",], aes(x="
 pies<-ggarrange(pie1, pie2, pie3, pie4, legend = "none", nrow=4, ncol=1, heights = c(0.9,0.9,0.9,1.2), labels=c("a", "d", "g", "k"))
 # #ggsave(filename = "shockdrivers by sector.pdf", device=pdf, dpi=600, width=10, height = 10)
 
+```
+
+#PLOT FOR SHOCKS DID NOT RECOVER
+
+```{r}
+shockdrivers
+
+Norecovery<-data.frame(table(is.na(shockdrivers$Recovery)==T, shockdrivers$Region, shockdrivers$Sector))
+names(Norecovery)[1]<- "NoRecover"
+names(Norecovery)[2]<- "Region"
+names(Norecovery)[3]<- "Sector"
+
+levels(Norecovery$Region)
+
+Tots<-c()
+
+for (i in 1:length(levels(Norecovery$Sector))){
+  for (r in 1:length(levels(Norecovery$Region))){
+    Tots<-c(Tots, sum(Norecovery$Freq[Norecovery$Sector==levels(Norecovery$Sector)[i] & Norecovery$Region==levels(Norecovery$Region)[r]]))
+  }
+}
+
+Norecovery$Total<-rep(Tots, 1, each=2)
+Norecovery$Prop<-Norecovery$Freq/Norecovery$Total
+
+levels(Norecovery$NoRecover)[levels(Norecovery$NoRecover)=="FALSE"]<-"Recovered"
+levels(Norecovery$NoRecover)[levels(Norecovery$NoRecover)=="TRUE"]<-"Did not recover"
+
+ggplot(data = Norecovery, aes(x=Region, y=Prop, fill=NoRecover))+geom_bar(stat="identity")+facet_wrap(~Sector)+
+  theme_bw()+
+  scale_fill_manual(values = c("#9e0142","#5e4fa2" ))+
+  theme(panel.grid = element_blank(), 
+        legend.title = element_blank(),
+        axis.text = element_text(size=11),
+        axis.title = element_text(size=11),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 11))+
+  labs(y=bquote(Proportion~of~shocks))
+
+
+ggsave("Recovered vs. norecoverd.tiff", device = "tiff", dpi=600, width = 18.3, height = 18, units = "cm")
 ```
 
 ## SHOCK SIZE AND RECOVERY PLOTS
@@ -6536,7 +6576,7 @@ nrow(shockdrivers[shockdrivers$Sector=="Aquaculture",])/length(levels(aggfisheri
 
 
 #aquaculture rates in LACa vs nezt nearest
-unique(aquacultureSR$Rate[aquacultureSR$Continent=="Latin America and Caribbean"])/unique(aquacultureSR$Rate[aquacultureSR$Continent=="Europe and Central Asia"])
+unique(aquacultureSR$Rate[aquacultureSR$Continent=="Latin America and Caribbean"])/unique(aquacultureSR$Rate[aquacultureSR$Continent=="South Asia"])
 
 #Livestock rates in South Asia vs next highest SSA 
 unique(livestockSR$Rate[livestockSR$Continent=="South Asia"])/unique(livestockSR$Rate[livestockSR$Continent=="Africa"])
@@ -6629,6 +6669,75 @@ mean(aquaculturesh$AbsMagnitude[aquaculturesh$Region=="LACa"])#3916.003
 mean(aquaculturesh$AbsMagnitude[aquaculturesh$Region=="North America"])#1017
 mean(aquaculturesh$AbsMagnitude[aquaculturesh$Region=="EuCA"])#26710.83
 mean(aquaculturesh$AbsMagnitude[aquaculturesh$Region=="South Asia"])#2179
+
+# % of food production with unknown aquaculture shocks
+
+#Austria 874 tonnes in 1990
+874/sum(aggcrops$Value[aggcrops$Country=="Austria" & aggcrops$Year==1990],
+agglivestock$Value[agglivestock$Country=="Austria" & agglivestock$Year==1990],
+aggfisheries$Value[aggfisheries$Country=="Austria" & aggfisheries$Year==1990],
+aggaqua$Value[aggaqua$Country=="Austria" & aggaqua$Year==1990])
+
+
+#Bahrain 0.5 t in 2001 
+0.5/sum(aggcrops$Value[aggcrops$Country=="Bahrain" & aggcrops$Year==2001],
+agglivestock$Value[agglivestock$Country=="Bahrain" & agglivestock$Year==2001],
+aggfisheries$Value[aggfisheries$Country=="Bahrain" & aggfisheries$Year==2001],
+aggaqua$Value[aggaqua$Country=="Bahrain" & aggaqua$Year==2001])
+
+
+#Burundi 2010 32.7 T 
+
+32.7/sum(aggcrops$Value[aggcrops$Country=="Burundi" & aggcrops$Year==2010],
+agglivestock$Value[agglivestock$Country=="Burundi" & agglivestock$Year==2010],
+aggfisheries$Value[aggfisheries$Country=="Burundi" & aggfisheries$Year==2010],
+aggaqua$Value[aggaqua$Country=="Burundi" & aggaqua$Year==2010])
+
+#Guadeloupe 2005 9.6 T
+9.6/sum(aggcrops$Value[aggcrops$Country=="Guadeloupe" & aggcrops$Year==2005],
+agglivestock$Value[agglivestock$Country=="Guadeloupe" & agglivestock$Year==2005],
+aggfisheries$Value[aggfisheries$Country=="Guadeloupe" & aggfisheries$Year==2005],
+aggaqua$Value[aggaqua$Country=="Guadeloupe" & aggaqua$Year==2005])
+
+
+#Guam 60.5T in 2003
+
+60.5/sum(aggcrops$Value[aggcrops$Country=="Guam" & aggcrops$Year==2003],
+agglivestock$Value[agglivestock$Country=="Guam" & agglivestock$Year==2003],
+aggfisheries$Value[aggfisheries$Country=="Guam" & aggfisheries$Year==2003],
+aggaqua$Value[aggaqua$Country=="Guam" & aggaqua$Year==2003])
+
+#Guyana 2008 316 T 
+316/sum(aggcrops$Value[aggcrops$Country=="Guyana" & aggcrops$Year==2008],
+agglivestock$Value[agglivestock$Country=="Guyana" & agglivestock$Year==2008],
+aggfisheries$Value[aggfisheries$Country=="Guyana" & aggfisheries$Year==2008],
+aggaqua$Value[aggaqua$Country=="Guyana" & aggaqua$Year==2008])
+
+#Guyana 2009 97.04 T
+97.04/sum(aggcrops$Value[aggcrops$Country=="Guyana" & aggcrops$Year==2009],
+agglivestock$Value[agglivestock$Country=="Guyana" & agglivestock$Year==2009],
+aggfisheries$Value[aggfisheries$Country=="Guyana" & aggfisheries$Year==2009],
+aggaqua$Value[aggaqua$Country=="Guyana" & aggaqua$Year==2009])
+
+#Jordan 2004 28T 
+28/sum(aggcrops$Value[aggcrops$Country=="Jordan" & aggcrops$Year==2004],
+agglivestock$Value[agglivestock$Country=="Jordan" & agglivestock$Year==2004],
+aggfisheries$Value[aggfisheries$Country=="Jordan" & aggfisheries$Year==2004],
+aggaqua$Value[aggaqua$Country=="Jordan" & aggaqua$Year==2004])
+
+# Singapore 524T 2007 
+524/sum(aggcrops$Value[aggcrops$Country=="Singapore" & aggcrops$Year==2007],
+agglivestock$Value[agglivestock$Country=="Singapore" & agglivestock$Year==2007],
+aggfisheries$Value[aggfisheries$Country=="Singapore" & aggfisheries$Year==2007],
+aggaqua$Value[aggaqua$Country=="Singapore" & aggaqua$Year==2007])
+
+#South Africa 1318 T in 2001
+1318/sum(aggcrops$Value[aggcrops$Country=="South Africa" & aggcrops$Year==2001],
+agglivestock$Value[agglivestock$Country=="South Africa" & agglivestock$Year==2001],
+aggfisheries$Value[aggfisheries$Country=="South Africa" & aggfisheries$Year==2001],
+aggaqua$Value[aggaqua$Country=="South Africa" & aggaqua$Year==2001])
+
+
 ```
 
 
@@ -7905,7 +8014,6 @@ ggplot(data = cropsovertime, aes(x=Year, y=Freq, group=interaction(Average, Span
 
 
 
-
 #crop shocks with confidence
 
 mins <- tapply(cropsovertime$Freq, INDEX = cropsovertime$Year, FUN = min)
@@ -7950,22 +8058,14 @@ av.shocks$maxs.adj <-av.shocks$maxs/av.shocks$CropsN
 av.shocks$actual.adj <-av.shocks$actual2/av.shocks$CropsN
 
 #add decades
+av.shocks$decade<-NA
+av.shocks$decade[grep("196", av.shocks$Year)]<-"1960s"
+av.shocks$decade[grep("197", av.shocks$Year)]<-"1970s"
+av.shocks$decade[grep("198", av.shocks$Year)]<-"1980s"
+av.shocks$decade[grep("199", av.shocks$Year)]<-"1990s"
+av.shocks$decade[grep("200", av.shocks$Year)]<-"2000s"
+av.shocks$decade[grep("201", av.shocks$Year)]<-"2010s"
 
-for (i in 1:nrow(av.shocks)){
-  if (av.shocks$Year[i]>1959 & av.shocks$Year[i] < 1970){
-    av.shocks$decade[i] <- "1960s"
-  } else if(av.shocks$Year[i]>1969 & av.shocks$Year[i] < 1980){
-    av.shocks$decade[i] <- "1970s"
-  } else if(av.shocks$Year[i]>1979 & av.shocks$Year[i] < 1990){
-    av.shocks$decade[i] <- "1980s"
-  } else if(av.shocks$Year[i]>1989 & av.shocks$Year[i] < 2000){
-    av.shocks$decade[i] <- "1990s"
-  } else if(av.shocks$Year[i]>1999){
-    av.shocks$decade[i] <- "2000s"
-  } else if(av.shocks$Year[i]>2009 & av.shocks$Year[i] < 2020){
-    av.shocks$decade[i] <- "2010s"
-  }
-}
 
 #add decadal trends
   
@@ -7974,22 +8074,26 @@ av.shocks$mins.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$mins.adj[av.sh
 av.shocks$mins.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1980s"])
 av.shocks$mins.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1990s"])
 av.shocks$mins.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2000s"])
-av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+#av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$maxs.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1960s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1970s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1980s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1990s"])
 av.shocks$maxs.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2000s"])
-av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+#av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$actual.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1960s"])
 av.shocks$actual.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1970s"])
 av.shocks$actual.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1980s"])
 av.shocks$actual.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1990s"])
 av.shocks$actual.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2000s"])
-av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
-
+#av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
 
 
 
@@ -8003,12 +8107,12 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[a
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
         panel.grid = element_blank(),
+        plot.margin = unit(c(0,0.2,0,0), "cm"),
         axis.title.x = element_blank())+
   scale_y_continuous(limits = c(0,0.07))+
-  labs(y=bquote(bold(Shock~rate)))+
+  scale_x_continuous(limits = c(1964,2013))+
+  labs(y=bquote(Shock~freq.))+
     annotation_custom(cropimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
-
-
 
 #Crop shocks by driver over time
 driversandtime<- data.frame(table(cropdrivers$Year, cropdrivers$Category))
@@ -8017,24 +8121,63 @@ names(driversandtime)[names(driversandtime)=="Var2"] <-"Driver"
 driversandtime$Freq <-as.numeric(driversandtime$Freq)
 driversandtime$Year <- as.numeric(levels(driversandtime$Year))[driversandtime$Year]
 
-driversandtime
+#diversity index work
+driversandtime<-driversandtime[order(driversandtime$Year),]
+drivers.div<-driversandtime[driversandtime$Freq!=0,]
+drivers.div$Driver<-as.character(drivers.div$Driver)
+drivers.div<-drivers.div[drivers.div$Driver!="Unknown",]
+drivers.div$Driver <-as.factor(drivers.div$Driver)
+drivers.div$decade<-NA
+drivers.div$decade[grep("197", drivers.div$Year)]<-"1970s"
+drivers.div$decade[grep("198", drivers.div$Year)]<-"1980s"
+drivers.div$decade[grep("199", drivers.div$Year)]<-"1990s"
+drivers.div$decade[grep("200", drivers.div$Year)]<-"2000s"
+drivers.div$decade[grep("201", drivers.div$Year)]<-"2010s"
+drivers.div$decade<-as.factor(drivers.div$decade)
 
-cropdriversovertime <- join(driversandtime, cropdriversovertime, by="Year", type="left")
-cropdriversovertime$Prop <- cropdriversovertime$Freq/ cropdriversovertime$actual2
+#Calculate diversity indices for each decade - Shannon-Weiner
+div.ind<-matrix(NA, nrow = length(levels(drivers.div$decade)), ncol=length(levels(drivers.div$Driver)))
 
-(p2 <-ggplot(data=cropdriversovertime, aes(x=Year, y=Freq, fill=Driver))+
+for (d in 1:length(levels(drivers.div$decade))){
+  for (c in 1:length(levels(drivers.div$Driver))){
+    sum<-sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d] & drivers.div$Driver==levels(drivers.div$Driver)[c]])/ (sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d]]))
+    div.ind[d,c]<-(sum*(log(sum)))*-1
+  }
+}
+
+div.ind[is.nan(div.ind)]<-0
+colnames(div.ind)<-levels(drivers.div$Driver)
+rownames(div.ind)<-levels(drivers.div$Year)
+index.res<- cbind.data.frame(levels(drivers.div$decade), rowSums(div.ind))
+names(index.res)[1]<-"Decade"
+names(index.res)[2]<-"Index"
+
+driversandtime$Decade<-NA
+driversandtime$Decade[grep("197", driversandtime$Year)]<-"1970s"
+driversandtime$Decade[grep("198", driversandtime$Year)]<-"1980s"
+driversandtime$Decade[grep("199", driversandtime$Year)]<-"1990s"
+driversandtime$Decade[grep("200", driversandtime$Year)]<-"2000s"
+driversandtime$Decade[grep("201", driversandtime$Year)]<-"2010s"
+driversandtime<-join(driversandtime, index.res, by="Decade", type="left")
+
+driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
+
+# cropdriversovertime <- join(driversandtime, cropdriversovertime, by="Year", type="left")
+# cropdriversovertime$Prop <- cropdriversovertime$Freq/ cropdriversovertime$actual2
+
+(p2 <-ggplot(data=driversandtime, aes(x=Year, y=Freq, fill=Driver))+
   geom_bar(stat="identity")+
+    geom_line(aes(y=Index*5), linetype=2, colour="grey50", size=1)+
   scale_fill_manual(values=cols)+
   theme_bw()+
-  scale_x_continuous(limits = c(1968, 2013))+
-  scale_y_continuous(limits = c(0, 8))+
+  scale_x_continuous(limits = c(1964, 2014))+
+  scale_y_continuous(limits = c(0, 8), sec.axis = sec_axis(~./5, name = bquote(Shannon~Index~(H))))+
   theme(panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        plot.margin = unit(c(0,0,0,0), "cm"),
         axis.title.x = element_blank())+
-  labs(y=bquote(bold(Shock~freq.))))
-
-
+  labs(y=bquote(Shock~no.)))
 
 
 
@@ -8110,21 +8253,13 @@ av.shocks$actual.adj <-av.shocks$actual2/av.shocks$LivestockN
 
 #add decades
 
-for (i in 1:nrow(av.shocks)){
-  if (av.shocks$Year[i]>1959 & av.shocks$Year[i] < 1970){
-    av.shocks$decade[i] <- "1960s"
-  } else if(av.shocks$Year[i]>1969 & av.shocks$Year[i] < 1980){
-    av.shocks$decade[i] <- "1970s"
-  } else if(av.shocks$Year[i]>1979 & av.shocks$Year[i] < 1990){
-    av.shocks$decade[i] <- "1980s"
-  } else if(av.shocks$Year[i]>1989 & av.shocks$Year[i] < 2000){
-    av.shocks$decade[i] <- "1990s"
-  } else if(av.shocks$Year[i]>1999){
-    av.shocks$decade[i] <- "2000s"
-  } else if(av.shocks$Year[i]>2009 & av.shocks$Year[i] < 2020){
-    av.shocks$decade[i] <- "2010s"
-  }
-}
+av.shocks$decade<-NA
+av.shocks$decade[grep("196", av.shocks$Year)]<-"1960s"
+av.shocks$decade[grep("197", av.shocks$Year)]<-"1970s"
+av.shocks$decade[grep("198", av.shocks$Year)]<-"1980s"
+av.shocks$decade[grep("199", av.shocks$Year)]<-"1990s"
+av.shocks$decade[grep("200", av.shocks$Year)]<-"2000s"
+av.shocks$decade[grep("201", av.shocks$Year)]<-"2010s"
 
 #add decadal trends
   
@@ -8133,21 +8268,26 @@ av.shocks$mins.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$mins.adj[av.sh
 av.shocks$mins.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1980s"])
 av.shocks$mins.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1990s"])
 av.shocks$mins.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2000s"])
-av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+#av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$maxs.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1960s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1970s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1980s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1990s"])
 av.shocks$maxs.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2000s"])
-av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+#av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$actual.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1960s"])
 av.shocks$actual.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1970s"])
 av.shocks$actual.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1980s"])
 av.shocks$actual.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1990s"])
 av.shocks$actual.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2000s"])
-av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+#av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
 
 
 
@@ -8158,12 +8298,14 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[a
   geom_line(aes(y=actual.adj), colour="Red")+
   theme_bw()+
   scale_y_continuous(limits = c(0,0.07))+
+  scale_x_continuous(limits = c(1964,2014))+
   theme(panel.background = element_blank(),
         panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        plot.margin = unit(c(0,0,0,0), "cm"),
         axis.title.x = element_blank())+
-  labs(y=bquote(bold(Shock~rate)))+
+  labs(y=bquote(Shock~freq.))+
     annotation_custom(cowimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
 
 
@@ -8174,24 +8316,66 @@ names(driversandtime)[names(driversandtime)=="Var2"] <-"Driver"
 driversandtime$Freq <-as.numeric(driversandtime$Freq)
 driversandtime$Year <- as.numeric(levels(driversandtime$Year))[driversandtime$Year]
 
-driversandtime
 
-livestockdriversovertime <- join(driversandtime, livestockdriversovertime, by="Year", type="left")
-livestockdriversovertime$Prop <- livestockdriversovertime$Freq/ livestockdriversovertime$actual2
+#diversity index work
+driversandtime<-driversandtime[order(driversandtime$Year),]
+drivers.div<-driversandtime[driversandtime$Freq!=0,]
+drivers.div$Driver<-as.character(drivers.div$Driver)
+drivers.div<-drivers.div[drivers.div$Driver!="Unknown",]
+drivers.div$Driver <-as.factor(drivers.div$Driver)
+drivers.div$decade<-NA
+drivers.div$decade[grep("197", drivers.div$Year)]<-"1970s"
+drivers.div$decade[grep("198", drivers.div$Year)]<-"1980s"
+drivers.div$decade[grep("199", drivers.div$Year)]<-"1990s"
+drivers.div$decade[grep("200", drivers.div$Year)]<-"2000s"
+drivers.div$decade[grep("201", drivers.div$Year)]<-"2010s"
+drivers.div$decade<-as.factor(drivers.div$decade)
 
-(p4 <-ggplot(data=livestockdriversovertime, aes(x=Year, y=Freq, fill=Driver))+
+#Calculate diversity indices for each decade - Shannon-Weiner
+div.ind<-matrix(NA, nrow = length(levels(drivers.div$decade)), ncol=length(levels(drivers.div$Driver)))
+
+for (d in 1:length(levels(drivers.div$decade))){
+  for (c in 1:length(levels(drivers.div$Driver))){
+    sum<-sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d] & drivers.div$Driver==levels(drivers.div$Driver)[c]])/ (sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d]]))
+    div.ind[d,c]<- -(sum*(log(sum)))
+  }
+}
+
+div.ind[is.nan(div.ind)]<-0
+colnames(div.ind)<-levels(drivers.div$Driver)
+rownames(div.ind)<-levels(drivers.div$Year)
+index.res<- cbind.data.frame(levels(drivers.div$decade), rowSums(div.ind))
+names(index.res)[1]<-"Decade"
+names(index.res)[2]<-"Index"
+
+driversandtime$Decade<-NA
+driversandtime$Decade[grep("197", driversandtime$Year)]<-"1970s"
+driversandtime$Decade[grep("198", driversandtime$Year)]<-"1980s"
+driversandtime$Decade[grep("199", driversandtime$Year)]<-"1990s"
+driversandtime$Decade[grep("200", driversandtime$Year)]<-"2000s"
+driversandtime$Decade[grep("201", driversandtime$Year)]<-"2010s"
+driversandtime<-join(driversandtime, index.res, by="Decade", type="left")
+
+driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
+
+# driversandtime
+# 
+# livestockdriversovertime <- join(driversandtime, livestockdriversovertime, by="Year", type="left")
+# livestockdriversovertime$Prop <- livestockdriversovertime$Freq/ livestockdriversovertime$actual2
+
+(p4 <-ggplot(data=driversandtime, aes(x=Year, y=Freq, fill=Driver))+
   geom_bar(stat="identity")+
   scale_fill_manual(values=cols)+
+  geom_line(aes(y=Index*5), linetype=2, colour="grey50", size=1)+
   theme_bw()+
-  scale_x_continuous(limits = c(1968, 2013))+
-  scale_y_continuous(limits = c(0, 8))+
+  scale_x_continuous(limits = c(1964, 2014))+
+  scale_y_continuous(limits = c(0, 8),sec.axis = sec_axis(~./5, name = bquote(Shannon~Index~(H))))+
   theme(panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        plot.margin = unit(c(0,0.2,0,0), "cm"),
         axis.title.x = element_blank())+
-  labs(y=bquote(bold(Shock~freq.))))
-
-
+  labs(y=bquote(Shock~no.)))
 
 
 
@@ -8271,21 +8455,13 @@ av.shocks$actual.adj <-av.shocks$actual2/av.shocks$FisheriesN
 
 #add decades
 
-for (i in 1:nrow(av.shocks)){
-  if (av.shocks$Year[i]>1959 & av.shocks$Year[i] < 1970){
-    av.shocks$decade[i] <- "1960s"
-  } else if(av.shocks$Year[i]>1969 & av.shocks$Year[i] < 1980){
-    av.shocks$decade[i] <- "1970s"
-  } else if(av.shocks$Year[i]>1979 & av.shocks$Year[i] < 1990){
-    av.shocks$decade[i] <- "1980s"
-  } else if(av.shocks$Year[i]>1989 & av.shocks$Year[i] < 2000){
-    av.shocks$decade[i] <- "1990s"
-  } else if(av.shocks$Year[i]>1999){
-    av.shocks$decade[i] <- "2000s"
-  } else if(av.shocks$Year[i]>2009 & av.shocks$Year[i] < 2020){
-    av.shocks$decade[i] <- "2010s"
-  }
-}
+av.shocks$decade<-NA
+av.shocks$decade[grep("196", av.shocks$Year)]<-"1960s"
+av.shocks$decade[grep("197", av.shocks$Year)]<-"1970s"
+av.shocks$decade[grep("198", av.shocks$Year)]<-"1980s"
+av.shocks$decade[grep("199", av.shocks$Year)]<-"1990s"
+av.shocks$decade[grep("200", av.shocks$Year)]<-"2000s"
+av.shocks$decade[grep("201", av.shocks$Year)]<-"2010s"
 
 #add decadal trends
   
@@ -8294,21 +8470,26 @@ av.shocks$mins.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$mins.adj[av.sh
 av.shocks$mins.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1980s"])
 av.shocks$mins.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1990s"])
 av.shocks$mins.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2000s"])
-av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+#av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$maxs.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1960s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1970s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1980s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1990s"])
 av.shocks$maxs.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2000s"])
-av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+#av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-NA
 
 av.shocks$actual.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1960s"])
 av.shocks$actual.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1970s"])
 av.shocks$actual.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1980s"])
 av.shocks$actual.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1990s"])
 av.shocks$actual.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2000s"])
-av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+#av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 (p5<-ggplot(data=av.shocks, aes(x=Year))+
   geom_ribbon(aes(ymin=mins.decadal, ymax=maxs.decadal), fill="grey50")+
@@ -8317,12 +8498,14 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[a
   geom_line(aes(y=actual.adj), colour="Red")+
   theme_bw()+
   scale_y_continuous(limits=c(0, 0.07))+
+  scale_x_continuous(limits = c(1964, 2014))+
   theme(panel.background = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        plot.margin = unit(c(0,0,0,0), "cm"),
         panel.grid = element_blank(),
         axis.title.x = element_blank())+
-  labs(y=bquote(bold(Shock~rate)))+
+  labs(y=bquote(Shock~freq.))+
   annotation_custom(fishingimg, xmin = 1961, xmax=1978, ymin = 0.025, ymax=0.07))
 
 
@@ -8334,24 +8517,67 @@ names(driversandtime)[names(driversandtime)=="Var2"] <-"Driver"
 driversandtime$Freq <-as.numeric(driversandtime$Freq)
 driversandtime$Year <- as.numeric(levels(driversandtime$Year))[driversandtime$Year]
 
+#diversity index work
+driversandtime<-driversandtime[order(driversandtime$Year),]
+drivers.div<-driversandtime[driversandtime$Freq!=0,]
+drivers.div$Driver<-as.character(drivers.div$Driver)
+drivers.div<-drivers.div[drivers.div$Driver!="Unknown",]
+drivers.div$Driver <-as.factor(drivers.div$Driver)
+drivers.div$decade<-NA
+drivers.div$decade[grep("196", drivers.div$Year)]<-"1960s"
+drivers.div$decade[grep("197", drivers.div$Year)]<-"1970s"
+drivers.div$decade[grep("198", drivers.div$Year)]<-"1980s"
+drivers.div$decade[grep("199", drivers.div$Year)]<-"1990s"
+drivers.div$decade[grep("200", drivers.div$Year)]<-"2000s"
+drivers.div$decade[grep("201", drivers.div$Year)]<-"2010s"
+drivers.div$decade<-as.factor(drivers.div$decade)
+
+#Calculate diversity indices for each decade - Shannon-Weiner
+div.ind<-matrix(NA, nrow = length(levels(drivers.div$decade)), ncol=length(levels(drivers.div$Driver)))
+
+for (d in 1:length(levels(drivers.div$decade))){
+  for (c in 1:length(levels(drivers.div$Driver))){
+    sum<-sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d] & drivers.div$Driver==levels(drivers.div$Driver)[c]])/ (sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d]]))
+    div.ind[d,c]<- -(sum*(log(sum)))
+  }
+}
+
+div.ind[is.nan(div.ind)]<-0
+colnames(div.ind)<-levels(drivers.div$Driver)
+rownames(div.ind)<-levels(drivers.div$Year)
+index.res<- cbind.data.frame(levels(drivers.div$decade), rowSums(div.ind))
+names(index.res)[1]<-"Decade"
+names(index.res)[2]<-"Index"
+
+driversandtime$Decade<-NA
+driversandtime$Decade[grep("196", driversandtime$Year)]<-"1960s"
+driversandtime$Decade[grep("197", driversandtime$Year)]<-"1970s"
+driversandtime$Decade[grep("198", driversandtime$Year)]<-"1980s"
+driversandtime$Decade[grep("199", driversandtime$Year)]<-"1990s"
+driversandtime$Decade[grep("200", driversandtime$Year)]<-"2000s"
+driversandtime$Decade[grep("201", driversandtime$Year)]<-"2010s"
+driversandtime<-join(driversandtime, index.res, by="Decade", type="left")
+
+driversandtime$Index[driversandtime$Decade=="1960s"]<-NA
+driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
+
 driversandtime
 
-fisheriesdriversovertime <- join(driversandtime, fisheriesdriversovertime, by="Year", type="left")
-fisheriesdriversovertime$Prop <- fisheriesdriversovertime$Freq/ fisheriesdriversovertime$actual2
+# fisheriesdriversovertime <- join(driversandtime, fisheriesdriversovertime, by="Year", type="left")
+# fisheriesdriversovertime$Prop <- fisheriesdriversovertime$Freq/ fisheriesdriversovertime$actual2
 
-(p6 <-ggplot(data=fisheriesdriversovertime, aes(x=Year, y=Freq, fill=Driver))+
+(p6 <-ggplot(data=driversandtime, aes(x=Year, y=Freq, fill=Driver))+
   geom_bar(stat="identity")+
   scale_fill_manual(values=cols)+
+    geom_line(aes(y=Index*4), linetype=2, colour="grey50", size=1)+
   theme_bw()+
-  scale_x_continuous(limits = c(1968, 2013))+
-  scale_y_continuous(limits = c(0, 8))+
+  scale_x_continuous(limits = c(1964, 2014))+
+  scale_y_continuous(limits = c(0, 8),sec.axis = sec_axis(~./4, name =bquote(Shannon~Index~(H))))+
   theme(panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
-        axis.title.x = element_blank())+
-  labs(y=bquote(bold(Shock~freq.))))
-
-
+        plot.margin = unit(c(0,0.2,0,0), "cm"))+
+  labs(X=bquote(bold(Year)), y=bquote(Shock~no.)))
 
 
 
@@ -8427,44 +8653,41 @@ av.shocks$actual.adj <-av.shocks$actual2/av.shocks$AquacultureN
 
 #add decades
 
-for (i in 1:nrow(av.shocks)){
-  if (av.shocks$Year[i]>1959 & av.shocks$Year[i] < 1970){
-    av.shocks$decade[i] <- "1960s"
-  } else if(av.shocks$Year[i]>1969 & av.shocks$Year[i] < 1980){
-    av.shocks$decade[i] <- "1970s"
-  } else if(av.shocks$Year[i]>1979 & av.shocks$Year[i] < 1990){
-    av.shocks$decade[i] <- "1980s"
-  } else if(av.shocks$Year[i]>1989 & av.shocks$Year[i] < 2000){
-    av.shocks$decade[i] <- "1990s"
-  } else if(av.shocks$Year[i]>1999){
-    av.shocks$decade[i] <- "2000s"
-  } else if(av.shocks$Year[i]>2009 & av.shocks$Year[i] < 2020){
-    av.shocks$decade[i] <- "2010s"
-  }
-}
+av.shocks$decade<-NA
+av.shocks$decade[grep("196", av.shocks$Year)]<-"1960s"
+av.shocks$decade[grep("197", av.shocks$Year)]<-"1970s"
+av.shocks$decade[grep("198", av.shocks$Year)]<-"1980s"
+av.shocks$decade[grep("199", av.shocks$Year)]<-"1990s"
+av.shocks$decade[grep("200", av.shocks$Year)]<-"2000s"
+av.shocks$decade[grep("201", av.shocks$Year)]<-"2010s"
 
 #add decadal trends
-  
+
 av.shocks$mins.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1960s"])
 av.shocks$mins.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1970s"])
 av.shocks$mins.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1980s"])
 av.shocks$mins.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="1990s"])
 av.shocks$mins.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2000s"])
-av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+#av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$mins.adj[av.shocks$decade=="2010s"])
+av.shocks$mins.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$maxs.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1960s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1970s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1980s"])
 av.shocks$maxs.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="1990s"])
 av.shocks$maxs.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2000s"])
-av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+#av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$maxs.adj[av.shocks$decade=="2010s"])
+av.shocks$maxs.decadal[av.shocks$decade=="2010s"]<-NA
+
 
 av.shocks$actual.decadal[av.shocks$decade=="1960s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1960s"])
 av.shocks$actual.decadal[av.shocks$decade=="1970s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1970s"])
 av.shocks$actual.decadal[av.shocks$decade=="1980s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1980s"])
 av.shocks$actual.decadal[av.shocks$decade=="1990s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="1990s"])
 av.shocks$actual.decadal[av.shocks$decade=="2000s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2000s"])
-av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+#av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[av.shocks$decade=="2010s"])
+av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
 
 
 
@@ -8477,43 +8700,96 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-mean(av.shocks$actual.adj[a
   geom_line(aes(y=actual.adj), colour="Red")+
   theme_bw()+
   scale_y_continuous(limits=c(0, 0.07))+
+  scale_x_continuous(limits = c(1964, 2014))+
   theme(panel.background = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
+        axis.title.x = element_blank(),
+        plot.margin = unit(c(0,0.2,0,0), "cm"),
         panel.grid = element_blank())+
-  scale_x_continuous(limits = c(1964, 2013))+
-  labs(x=bquote(bold(Year)), y=bquote(bold(Shock~rate)))+
+  labs(y=bquote(Shock~freq.))+
     annotation_custom(aquaimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
 
 
 
 
-#fisheries shocks by driver over time
+#aquaculture shocks by driver over time
 driversandtime<- data.frame(table(aquaculturedrivers$Year, aquaculturedrivers$Category))
 names(driversandtime)[names(driversandtime)=="Var1"] <-"Year"
 names(driversandtime)[names(driversandtime)=="Var2"] <-"Driver"
 driversandtime$Freq <-as.numeric(driversandtime$Freq)
 driversandtime$Year <- as.numeric(levels(driversandtime$Year))[driversandtime$Year]
 
-driversandtime
+#diversity index work
+driversandtime<-driversandtime[order(driversandtime$Year),]
+drivers.div<-driversandtime[driversandtime$Freq!=0,]
+drivers.div$Driver<-as.character(drivers.div$Driver)
+drivers.div<-drivers.div[drivers.div$Driver!="Unknown",]
+drivers.div$Driver <-as.factor(drivers.div$Driver)
+drivers.div$decade<-NA
+drivers.div$decade[grep("196", drivers.div$Year)]<-"1960s"
+drivers.div$decade[grep("197", drivers.div$Year)]<-"1970s"
+drivers.div$decade[grep("198", drivers.div$Year)]<-"1980s"
+drivers.div$decade[grep("199", drivers.div$Year)]<-"1990s"
+drivers.div$decade[grep("200", drivers.div$Year)]<-"2000s"
+drivers.div$decade[grep("201", drivers.div$Year)]<-"2010s"
+drivers.div$decade<-as.factor(drivers.div$decade)
 
-aquaculturedriversovertime <- join(driversandtime, aquaculturedriversovertime, by="Year", type="left")
-aquaculturedriversovertime$Prop <- aquaculturedriversovertime$Freq/ aquaculturedriversovertime$actual2
+#Calculate diversity indices for each decade - Shannon-Weiner
+div.ind<-matrix(NA, nrow = length(levels(drivers.div$decade)), ncol=length(levels(drivers.div$Driver)))
 
-(p8 <-ggplot(data=aquaculturedriversovertime, aes(x=Year, y=Freq, fill=Driver))+
+for (d in 1:length(levels(drivers.div$decade))){
+  for (c in 1:length(levels(drivers.div$Driver))){
+    sum<-sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d] & drivers.div$Driver==levels(drivers.div$Driver)[c]])/ (sum(drivers.div$Freq[drivers.div$decade==levels(drivers.div$decade)[d]]))
+    div.ind[d,c]<- -(sum*(log(sum)))
+  }
+}
+
+div.ind[is.nan(div.ind)]<-0
+colnames(div.ind)<-levels(drivers.div$Driver)
+rownames(div.ind)<-levels(drivers.div$Year)
+index.res<- cbind.data.frame(levels(drivers.div$decade), rowSums(div.ind))
+names(index.res)[1]<-"Decade"
+names(index.res)[2]<-"Index"
+
+driversandtime$Decade<-NA
+driversandtime$Decade[grep("196", driversandtime$Year)]<-"1960s"
+driversandtime$Decade[grep("197", driversandtime$Year)]<-"1970s"
+driversandtime$Decade[grep("198", driversandtime$Year)]<-"1980s"
+driversandtime$Decade[grep("199", driversandtime$Year)]<-"1990s"
+driversandtime$Decade[grep("200", driversandtime$Year)]<-"2000s"
+driversandtime$Decade[grep("201", driversandtime$Year)]<-"2010s"
+driversandtime<-join(driversandtime, index.res, by="Decade", type="left")
+
+driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
+
+# driversandtime
+# 
+# aquaculturedriversovertime <- join(driversandtime, aquaculturedriversovertime, by="Year", type="left")
+# aquaculturedriversovertime$Prop <- aquaculturedriversovertime$Freq/ aquaculturedriversovertime$actual2
+
+# filler<-(data.frame(Year=c(1980:1983, 1985:1989), Driver=rep(NA,9), Freq=rep(0,9), Decade=rep("1980s",9), Index=rep(0,9)))
+# filler2<-rbind.data.frame(driversandtime, filler)
+# filler2<-filler2[order(filler2$Year),]
+# filler2$Decade<-as.factor(filler2$Driver)
+# levels(filler2$Driver)
+
+(p8 <-ggplot(data=driversandtime, aes(x=Year, y=Freq, fill=Driver))+
   geom_bar(stat="identity")+
   scale_fill_manual(values=cols)+
+  geom_line(aes(x=Year, y=Index*4), linetype=2, colour="grey50", size=1)+
   theme_bw()+
-  scale_x_continuous(limits = c(1968, 2013))+
-  scale_y_continuous(limits = c(0, 8))+
+  scale_x_continuous(limits = c(1964, 2014))+
+  scale_y_continuous(limits = c(0, 8),sec.axis = sec_axis(~./4, name =bquote(Shannon~Index~(H))))+
   theme(panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
         legend.key.width = unit(0.5, "cm"),
         legend.position = "bottom",
         legend.text = element_text(size=9),
+        plot.margin = unit(c(0,0.2,0,0), "cm"),
         legend.title = element_text(face="bold"))+
-  labs(y=bquote(bold(Shock~freq.)), x=bquote(bold(Year)))+
+  labs(y=bquote(Shock~no.), x=bquote(bold(Year)))+
     guides(fill=guide_legend(nrow=4, byrow = T)))
 
 
@@ -8530,7 +8806,7 @@ aquaculturedriversovertime$Prop <- aquaculturedriversovertime$Freq/ aquacultured
 
 #Figure 1 
 
-fig1<-ggarrange(p1, p2, p3,p4, p5,p6, p7,p8, labels=c("a","b","c","d","e", "f", "g", "h"), ncol=2, nrow=4, heights = c(1,1,1,1.1), legend = "none")
+fig1<-ggarrange(p1, p3, p2,p4, p5,p7, p6,p8, labels=c("a","c","b","d","e", "g", "f", "h"), ncol=2, nrow=4, legend = "none", align = "hv" , font.label = list(size=10))
 
 fig1<-ggarrange(fig1, driverlegend, nrow=2, ncol=1, heights = c(1,0.15))
 
