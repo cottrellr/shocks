@@ -1047,6 +1047,8 @@ marine <- marine[,c(1:8)]
 
 write.csv(marine, "Marine aquaculture production 1950 -2015.csv", row.names=F)
 
+
+ls
 ```
 ## AGGREGATE PRODUCTION DATA 
 
@@ -6253,7 +6255,7 @@ aquacultureSR$Rate[aquacultureSR$Continent=="North America"]<- nrow(shockdrivers
 
 #JOIN TO SPATIAL DATA
 bbox <- readOGR(dsn="ne_110m_graticules_all", layer="ne_110m_wgs84_bounding_box") 
-bbox <- spTransform(bbox, CRS("+proj=robin"))  # reproject bounding box
+bbox <- spTransform(bbox, CRS("+proj=moll"))  # reproject bounding box
 bbox_df<- fortify(bbox) #, group="ISO_TER1"
 
 
@@ -6261,7 +6263,7 @@ bbox_df<- fortify(bbox) #, group="ISO_TER1"
 names(cropsSR)[names(cropsSR)=="Codes"]<-"iso_a3"
 CRworld<-readOGR("ne_110m_admin_0_countries", layer="ne_110m_admin_0_countries")
 CRworld <- CRworld[!CRworld$iso_a3 %in% c("ATA"),] #remove antartica
-CRworld<-spTransform(CRworld, CRS("+proj=robin"))
+CRworld<-spTransform(CRworld, CRS("+proj=moll"))
 CRworld@data$id<-rownames(CRworld@data)
 CRworld@data<-join(CRworld@data, cropsSR, by="iso_a3")
 CRworld.df<-fortify(CRworld)
@@ -6277,7 +6279,7 @@ head(CRworld.df)
 names(livestockSR)[names(livestockSR)=="Code"]<-"iso_a3" #create common variable
 LSworld<-readOGR(dsn="ne_110m_admin_0_countries", layer="ne_110m_admin_0_countries")
 LSworld <- LSworld[!LSworld$iso_a3 %in% c("ATA"),] #remove antarctica
-LSworld<-spTransform(LSworld, CRS("+proj=robin"))
+LSworld<-spTransform(LSworld, CRS("+proj=moll"))
 LSworld@data$id<-rownames(LSworld@data)
 LSworld@data<-join(LSworld@data, livestockSR, by="iso_a3")
 LSworld.df<-fortify(LSworld)
@@ -6330,7 +6332,7 @@ LSworld.df<-join(LSworld.df, LSworld@data, by="id")
 ## read in simplified copy - fisheries
 eez_fish <- readRDS("eez_simplified.rds")
 eez_fish <- eez_fish[!eez_fish$Territory1 %in% c("Antarctica"),]
-eez_fish<-spTransform(eez_fish, CRS("+proj=robin"))
+eez_fish<-spTransform(eez_fish, CRS("+proj=moll"))
 names(fisheriesSR)[names(fisheriesSR)=="Code"]<-"ISO_Ter1"
 eez_fish@data$id<-rownames(eez_fish@data)
 eez_fish@data<-join(eez_fish@data, fisheriesSR, by="ISO_Ter1")
@@ -6343,7 +6345,7 @@ eez_fish.df<-join(eez_fish.df, eez_fish@data, by="id")
 #aquaculture and EEZ simplified
 eez_aqua<-readRDS("eez_simplified.rds")
 eez_aqua <- eez_aqua[!eez_aqua$Territory1 %in% c("Antarctica"),]
-eez_aqua<-spTransform(eez_aqua, CRS("+proj=robin"))
+eez_aqua<-spTransform(eez_aqua, CRS("+proj=moll"))
 names(aquacultureSR)[names(aquacultureSR)=="Code"]<-"ISO_Ter1"
 eez_aqua@data$id<-rownames(eez_aqua@data)
 eez_aqua@data<-join(eez_aqua@data, aquacultureSR, by="ISO_Ter1")
