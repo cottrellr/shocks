@@ -762,7 +762,7 @@ names(aquaculture)[names(aquaculture)=="Land.Area"]<-"Country"
 names(aquaculture)[names(aquaculture)=="Ocean.Area"]<-"Waters"
 inland<-aquaculture[aquaculture$Waters=="Inland waters",]
 marine<-aquaculture[aquaculture$Waters=="Marine areas",]
-
+  
 
 #inland production
 
@@ -5368,7 +5368,6 @@ shockdrivers$Country<-as.character(shockdrivers$Country)
 shockdrivers$Region<-as.character(shockdrivers$Region)
 
 shockdrivers<-shockdrivers[shockdrivers$Country!="Haiti",]
-
 Replacements<-countrycode(shockdrivers$Country[shockdrivers$Region=="East Asia and Pacific"], origin = "country.name", destination = "continent", warn = T)
 
 shockdrivers$Region[shockdrivers$Region=="East Asia and Pacific"]<-Replacements
@@ -5383,17 +5382,10 @@ shockdrivers$Country<-as.factor(shockdrivers$Country)
 shockdrivers$Region<-as.factor(shockdrivers$Region)
 
 
-unique(shockdrivers$Region)
-unique(shockdrivers$Country[shockdrivers$Region=="EuCA"])
-
-
-
-
-#13 in total
+#Take out not shocks 13 in total
 shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock",]
 shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock ",]
 
-levels(shockdrivers$Category)
 shockdrivers$Category <- as.character(shockdrivers$Category)
 shockdrivers$Category[shockdrivers$Driver=="Unknown driver to carp production decline"]<-"Unknown"
 shockdrivers$Category[shockdrivers$Driver=="Unknown"]<-"Unknown"
@@ -5465,7 +5457,7 @@ unique(shockdrivers$Category)
 shockdrivers$Category <-as.factor(shockdrivers$Category)
 levels(shockdrivers$Category)
 
-shockdrivers$Category<-factor(shockdrivers$Category,levels(shockdrivers$Category)[c(2,1,3, 4, 5, 6, 7, 9, 8, 10)])
+shockdrivers$Category<-factor(shockdrivers$Category,levels(shockdrivers$Category)[c(2,3,1, 4, 6, 5, 7, 9, 8, 10)])
 levels(shockdrivers$Category)
 
 shockdrivers <-shockdrivers[shockdrivers$Sector!="",]
@@ -5473,13 +5465,6 @@ shockdrivers$Sector <-as.character(shockdrivers$Sector)
 shockdrivers$Sector <- as.factor(shockdrivers$Sector)
 shockdrivers$Sector <- factor(shockdrivers$Sector, levels(shockdrivers$Sector)[c(2,4,3,1)])
 
-shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
-
-shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
-shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
-shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
-shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
-shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
 
 #update with Oceania
 
@@ -5491,8 +5476,42 @@ shockdrivers$Recovery2[is.na(shockdrivers$Recovery2)]<-2013-shockdrivers$Year[is
 shockdrivers$Recovery2[shockdrivers$Recovery2==0]<-1
 levels(shockdrivers$Region)[levels(shockdrivers$Region)=="CaLA"]<-"LACa"
 
+#Final touch ups from supplementary review of drivers
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Bermuda"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Comoros"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Guam"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Libya"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Saudi Arabia"]<-"Policy change"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Belize"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="China, Macao SAR"]<-"Other"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Year==1997]<-"Climate/weather & geopolitical/economic events"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Greenland"]<-"Mismanagement & policy change"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Malawi"]<-"Climate/weather & geopolitical/economic events"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Republic of Korea"]<-"Other"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sao Tome and Principe"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sri Lanka" & shockdrivers$Year==1998]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Timor-Leste"]<-"Climate/weather & geopolitical/economic events"
+shockdrivers$Category[shockdrivers$Sector=="Fisheries" & shockdrivers$Country=="Solomon Islands"]<-"Mismanagement & geopolitical/economic events"
+shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Jamaica"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Saint Lucia"]<-"Unknown"
+
+
+
+#Exclude reunion aquaculture shock (not a shock - gradual decline before a big jump)
+shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Réunion"),]
+
 
 write.csv(shockdrivers, file = "Shocks and drivers tidy.csv", row.names = F)
+
+shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
+
+shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
+shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
+shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
+shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
+shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
+
+
 
 ```
 
@@ -5500,10 +5519,7 @@ write.csv(shockdrivers, file = "Shocks and drivers tidy.csv", row.names = F)
 
 ```{r}
 
-
-cols<-c("Climate/weather events"="#9e0142", "Climate/weather & geopolitical/economic events" = "#d53e4f", "Climate/weather events & mismanagement" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b", "Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
-
-shockcategories$Var1<-factor(shockcategories$Var1, levels(shockcategories$Var1)[c(1:4,6,5,7:10)])
+cols<-c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
 
 Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(stat="identity")+
   theme_bw()+
@@ -5550,61 +5566,61 @@ pie1<-ggplot(data=shockcategories[shockcategories$Var2=="Crops",], aes(x="", y=P
   #scale_y_continuous(limits = c(0, 1.06))+
   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
 
-pie2<-ggplot(data=shockcategories[shockcategories$Var2=="Livestock",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
-  theme_bw()+
-  coord_polar("y")+
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        panel.border = element_blank(),
-        legend.position = "bottom", 
-        legend.text = element_text(size=8),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_blank(),
-        legend.title = element_text(face="bold", size=8),
-        plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
-  scale_fill_manual(values=cols)+
-  #scale_y_continuous(limits = c(0, 1.06))+
-  labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
-
-pie3<-ggplot(data=shockcategories[shockcategories$Var2=="Fisheries",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
-  theme_bw()+
-  coord_polar("y")+
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        panel.border = element_blank(),
-        legend.position = "bottom", 
-        legend.text = element_text(size=8),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_blank(),
-        legend.title = element_text(face="bold", size=8),
-        plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
-  scale_fill_manual(values=cols)+
-  #scale_y_continuous(limits = c(0, 1.06))+
-  labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
-
-pie4<-ggplot(data=shockcategories[shockcategories$Var2=="Aquaculture",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
-  theme_bw()+
-  coord_polar("y")+
-  theme(axis.title.x = element_text(size=11, margin = unit(c(0.2,0,0,0), "cm")),
-        axis.text.x = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        panel.border = element_blank(),
-        legend.position = "bottom", 
-        legend.text = element_text(size=10),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_blank(),
-        legend.title = element_text(face="bold", size=10),
-        plot.margin = unit(c(t=0,r=0.5,b=1.2,l=-0.4), "cm"))+
-  scale_fill_manual(values=cols)+
-  #scale_y_continuous(limits = c(0, 1.06))+
-  labs(x="", y="", fill="Shock drivers")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
-
-pies<-ggarrange(pie1, pie2, pie3, pie4, legend = "none", nrow=4, ncol=1, heights = c(0.9,0.9,0.9,1.2), labels=c("a", "d", "g", "k"))
+# pie2<-ggplot(data=shockcategories[shockcategories$Var2=="Livestock",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
+#   theme_bw()+
+#   coord_polar("y")+
+#   theme(axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid = element_blank(),
+#         panel.border = element_blank(),
+#         legend.position = "bottom", 
+#         legend.text = element_text(size=8),
+#         legend.key.size = unit(0.3, "cm"),
+#         legend.background = element_blank(),
+#         legend.title = element_text(face="bold", size=8),
+#         plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
+#   scale_fill_manual(values=cols)+
+#   #scale_y_continuous(limits = c(0, 1.06))+
+#   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
+# 
+# pie3<-ggplot(data=shockcategories[shockcategories$Var2=="Fisheries",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
+#   theme_bw()+
+#   coord_polar("y")+
+#   theme(axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid = element_blank(),
+#         panel.border = element_blank(),
+#         legend.position = "bottom", 
+#         legend.text = element_text(size=8),
+#         legend.key.size = unit(0.3, "cm"),
+#         legend.background = element_blank(),
+#         legend.title = element_text(face="bold", size=8),
+#         plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
+#   scale_fill_manual(values=cols)+
+#   #scale_y_continuous(limits = c(0, 1.06))+
+#   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
+# 
+# pie4<-ggplot(data=shockcategories[shockcategories$Var2=="Aquaculture",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
+#   theme_bw()+
+#   coord_polar("y")+
+#   theme(axis.title.x = element_text(size=11, margin = unit(c(0.2,0,0,0), "cm")),
+#         axis.text.x = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid = element_blank(),
+#         panel.border = element_blank(),
+#         legend.position = "bottom", 
+#         legend.text = element_text(size=10),
+#         legend.key.size = unit(0.3, "cm"),
+#         legend.background = element_blank(),
+#         legend.title = element_text(face="bold", size=10),
+#         plot.margin = unit(c(t=0,r=0.5,b=1.2,l=-0.4), "cm"))+
+#   scale_fill_manual(values=cols)+
+#   #scale_y_continuous(limits = c(0, 1.06))+
+#   labs(x="", y="", fill="Shock drivers")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
+# 
+# pies<-ggarrange(pie1, pie2, pie3, pie4, legend = "none", nrow=4, ncol=1, heights = c(0.9,0.9,0.9,1.2), labels=c("a", "d", "g", "k"))
 # #ggsave(filename = "shockdrivers by sector.pdf", device=pdf, dpi=600, width=10, height = 10)
 
 ```
@@ -5651,7 +5667,7 @@ ggsave("Recovered vs. norecoverd.tiff", device = "tiff", dpi=600, width = 18.3, 
 
 ## SHOCK SIZE AND RECOVERY PLOTS
 ```{r}
-cols<-c("Climate/weather events"="#9e0142", "Climate/weather & geopolitical/economic events" = "#d53e4f", "Climate/weather events & mismanagement" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b", "Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
+cols<-c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fee08b", "Mismanagement & geopolitical/economic events" = "#fdae61","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
 
 
 #change order of Regions
@@ -5659,7 +5675,6 @@ levels(shockdrivers$Region)
 shockdrivers$Country<-as.character(shockdrivers$Country)
 shockdrivers$Country[shockdrivers$Codes=="PRK"]<-"DPRK"
 shockdrivers$Country<-as.factor(shockdrivers$Country)
-shockdrivers$Category<-factor(shockdrivers$Category, levels(shockdrivers$Category)[c(1:4,6,5,7:10)])
 
 
 
@@ -5751,9 +5766,9 @@ size4<-ggplot(data = shockdrivers[shockdrivers$Sector=="Aquaculture",], aes(x=Re
   geom_text(data = maxshocksaqua, mapping = aes(x=Region, y= log(AbsMagnitude), label = Country), size=3, position = position_nudge(y = 2), hjust="inward")
 
 
-Sizes<-ggarrange(size1, size2, size3, size4, legend = "none", nrow=4, ncol=1, heights=c(1,1,1,1.6), labels = c("b", "e", "i", "l"))
-
-ggsave(filename = "Magnitude.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
+# Sizes<-ggarrange(size1, size2, size3, size4, legend = "none", nrow=4, ncol=1, heights=c(1,1,1,1.6), labels = c("b", "e", "i", "l"))
+# 
+# ggsave(filename = "Magnitude.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
 
 
 Rec1<-ggplot(data = shockdrivers[shockdrivers$Sector=="Crops",], aes(x=Region, y=Recovery2))+geom_boxplot(outlier.alpha = 0)+
@@ -5820,40 +5835,40 @@ Rec4<-ggplot(data = shockdrivers[shockdrivers$Sector=="Aquaculture",], aes(x=Reg
   geom_text(data = maxrecaqua, mapping = aes(x=Region, y= Recovery2, label = Country), size=3, position = position_nudge(y = 6), hjust="inward")
 
 
-Recovery<-ggarrange(Rec1, Rec2, Rec3, Rec4, legend = "none", nrow=4, ncol=1, heights = c(1,1,1,1.6), labels = c("c", "f", "j", "m"))
-
-ggsave(filename = "Recovery.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
-
-
-allnl<-ggarrange(pies, Sizes, Recovery, ncol=3, nrow=1, legend = "none", widths = c(0.6,1,1))
-
-ggsave(filename = "Drivers.test.tiff", device="tiff", dpi=600, width=18, height = 18, units="cm")
+# Recovery<-ggarrange(Rec1, Rec2, Rec3, Rec4, legend = "none", nrow=4, ncol=1, heights = c(1,1,1,1.6), labels = c("c", "f", "j", "m"))
+# 
+# ggsave(filename = "Recovery.test.tiff", device="tiff", dpi=300, width=7, height = 18, units = "cm")
+# 
+# 
+# allnl<-ggarrange(pies, Sizes, Recovery, ncol=3, nrow=1, legend = "none", widths = c(0.6,1,1))
+# 
+# ggsave(filename = "Drivers.test.tiff", device="tiff", dpi=600, width=18, height = 18, units="cm")
 
 #WITH PIE CHARTS
 
-#Rows
-row1<-ggarrange(pie1, size1, Rec1, nrow = 1, ncol=3, labels = c("a","b", "c"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
-row2<-ggarrange(pie2, size2, Rec2, nrow = 1, ncol=3, labels = c("d","e", "f"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
-row3<-ggarrange(pie3, size3, Rec3, nrow = 1, ncol=3, labels = c("h","i", "j"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
-row4<-ggarrange(pie4, size4, Rec4, nrow = 1, ncol=3, labels = c("k","l", "m"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
-
-allnl<-ggarrange(row1, row2, row3, row4, nrow = 4, ncol = 1, legend = "none", heights = c(1,1, 1,1.6))
-
-ggsave("drivers combined.test.tiff", device = "tiff", dpi = 600, width = 18.3, height = 18, units = "cm")
-
-driverlegend<-get_legend(pie1)
-
-ggarrange(allnl, driverlegend, nrow=2, ncol=1, heights = c(1,0.15))
-
-ggsave(filename = "Drivers.tiff", device="tiff", dpi=600, width=18.3, height=20, units="cm")
+# #Rows
+# row1<-ggarrange(pie1, size1, Rec1, nrow = 1, ncol=3, labels = c("a","b", "c"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
+# row2<-ggarrange(pie2, size2, Rec2, nrow = 1, ncol=3, labels = c("d","e", "f"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
+# row3<-ggarrange(pie3, size3, Rec3, nrow = 1, ncol=3, labels = c("h","i", "j"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
+# row4<-ggarrange(pie4, size4, Rec4, nrow = 1, ncol=3, labels = c("k","l", "m"), legend = "none", widths = c(0.6,1,1), font.label = list(size=10))
+# 
+# allnl<-ggarrange(row1, row2, row3, row4, nrow = 4, ncol = 1, legend = "none", heights = c(1,1, 1,1.6))
+# 
+# ggsave("drivers combined.test.tiff", device = "tiff", dpi = 600, width = 18.3, height = 18, units = "cm")
+# 
+# driverlegend<-get_legend(pie1)
+# 
+# ggarrange(allnl, driverlegend, nrow=2, ncol=1, heights = c(1,0.15))
+# 
+# ggsave(filename = "Drivers.tiff", device="tiff", dpi=600, width=18.3, height=20, units="cm")
 
 
 #WITHOUT PIE CHARTS
 
-row1<-ggarrange(size1, Rec1, nrow = 1, ncol=2, labels = c("a","b"), legend = "none", font.label = list(size=10))
-row2<-ggarrange( size2, Rec2, nrow = 1, ncol=2, labels = c("c","d"), legend = "none", font.label = list(size=10))
-row3<-ggarrange( size3, Rec3, nrow = 1, ncol=2, labels = c("e","f"), legend = "none",  font.label = list(size=10))
-row4<-ggarrange(size4, Rec4, nrow = 1, ncol=2, labels = c("g","h"), legend = "none",  font.label = list(size=10))
+# row1<-ggarrange(size1, Rec1, nrow = 1, ncol=2, labels = c("a","b"), legend = "none", font.label = list(size=10))
+# row2<-ggarrange( size2, Rec2, nrow = 1, ncol=2, labels = c("c","d"), legend = "none", font.label = list(size=10))
+# row3<-ggarrange( size3, Rec3, nrow = 1, ncol=2, labels = c("e","f"), legend = "none",  font.label = list(size=10))
+# row4<-ggarrange(size4, Rec4, nrow = 1, ncol=2, labels = c("g","h"), legend = "none",  font.label = list(size=10))
 
 col1<-ggarrange(size1, size2, size3, size4, nrow = 4, ncol=1, labels = c("a","c", "e", "g"), legend = "none", font.label = list(size=10), heights = c(1,1,1,1.5))
 
