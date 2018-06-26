@@ -5502,6 +5502,13 @@ shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=
 #Exclude reunion aquaculture shock (not a shock - gradual decline before a big jump)
 shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Réunion"),]
 
+#Rescale recovery times between 0 and 1 for chord plots
+
+shockdrivers$Scaled.recovery<-NA
+shockdrivers$Scaled.recovery<-(shockdrivers$Recovery2-min(shockdrivers$Recovery2))/(max(shockdrivers$Recovery2)-min(shockdrivers$Recovery2))
+shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
+
+
 
 write.csv(shockdrivers, file = "Shocks and drivers tidy.csv", row.names = F)
 
