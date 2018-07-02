@@ -37,6 +37,10 @@ library(earlywarnings)
 library(Kendall)
 library(png)
 library(grid) 
+library(readr)
+library(plot3D)
+library(circlize)
+
 
 ```
 
@@ -224,7 +228,7 @@ livestock<-livestock[!is.na(livestock$Codes),]
 summary(livestock)
 
 #only use total production
-levels(livestock$Item)[levels(livestock$Item)=="Meat indigenous, total"] <- "Meat indigenous, Total"
+#levels(livestock$Item)[levels(livestock$Item)=="Meat indigenous, total"] <- "Meat indigenous, Total"
 
 #reduce to totals and production
 livestock<-livestock[grep("Total",livestock$Item),]
@@ -4829,7 +4833,7 @@ rejigged<- data.frame(table(shocks$Year, interaction(shocks$Average, shocks$Span
 names(rejigged)[names(rejigged)=="Var1"] <-"Year"
 names(rejigged)[names(rejigged)=="Var2"] <-"Combo"
 
-rejigged2 <-(tapply(X = rejigged$Freq, INDEX = rejigged$Year, FUN = mean))
+rejigged2 <-(tapply(X = rejigged$Freq, INDEX = rejigged$Year, FUN = median))
 
 medianshocks <- data.frame(Year=names(rejigged2), Freq=rejigged2)
 
@@ -5362,15 +5366,16 @@ aquaimg<-rasterGrob(aquaimg, interpolate = T)
 #Import shocks with drivers and tidy
 ```{r}
 
-shockdrivers <- read.csv("shocksanddrivers.csv", header=T)
-shockdrivers <- shockdrivers[1:230,1:11]
+shockdrivers <- read.csv("shocksanddrivers2.csv", header=T)
+shockdrivers <- shockdrivers[,1:11]
+names(shockdrivers)[11]<-"Category"
 shockdrivers$Country<-as.character(shockdrivers$Country)
 shockdrivers$Region<-as.character(shockdrivers$Region)
 
-shockdrivers<-shockdrivers[shockdrivers$Country!="Haiti",]
-Replacements<-countrycode(shockdrivers$Country[shockdrivers$Region=="East Asia and Pacific"], origin = "country.name", destination = "continent", warn = T)
+#shockdrivers<-shockdrivers[shockdrivers$Country!="Haiti",]
+#Replacements<-countrycode(shockdrivers$Country[shockdrivers$Region=="East Asia and Pacific"], origin = "country.name", destination = "continent", warn = T)
 
-shockdrivers$Region[shockdrivers$Region=="East Asia and Pacific"]<-Replacements
+#shockdrivers$Region[shockdrivers$Region=="East Asia and Pacific"]<-Replacements
 shockdrivers$Region[shockdrivers$Region=="Asia"]<-"East Asia"
 shockdrivers$Region[shockdrivers$Country=="Iran (Islamic Republic of)"]<-"MENA"
 shockdrivers$Region[shockdrivers$Country=="Syrian Arab Republic" ]<-"MENA" 
@@ -5385,6 +5390,7 @@ shockdrivers$Region<-as.factor(shockdrivers$Region)
 #Take out not shocks 13 in total
 shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock",]
 shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock ",]
+
 
 shockdrivers$Category <- as.character(shockdrivers$Category)
 shockdrivers$Category[shockdrivers$Driver=="Unknown driver to carp production decline"]<-"Unknown"
@@ -5479,17 +5485,18 @@ levels(shockdrivers$Region)[levels(shockdrivers$Region)=="CaLA"]<-"LACa"
 #Final touch ups from supplementary review of drivers
 shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Bermuda"]<-"Unknown"
 shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Comoros"]<-"Unknown"
+shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Democratic People's Republic of Korea"]<-"Climate/weather events & mismanagement"
 shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Guam"]<-"Unknown"
 shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Libya"]<-"Unknown"
 shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Saudi Arabia"]<-"Policy change"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Belize"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="China, Macao SAR"]<-"Other"
+#shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="China, Macao SAR"]<-"Other"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Guam"]<-"Climate/weather & geopolitical/economic events"
 
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Year==1997]<-"Climate/weather & geopolitical/economic events"
+shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Year==1997]<-"Climate/weather events & mismanagement"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Greenland"]<-"Mismanagement & policy change"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Malawi"]<-"Climate/weather & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Republic of Korea"]<-"Other"
+#shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Republic of Korea"]<-"Other"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sao Tome and Principe"]<-"Unknown"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sri Lanka" & shockdrivers$Year==1998]<-"Unknown"
 shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Timor-Leste"]<-"Climate/weather & geopolitical/economic events"
@@ -5510,7 +5517,7 @@ shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
 
 
 
-write.csv(shockdrivers, file = "Shocks and drivers tidy.csv", row.names = F)
+write.csv(shockdrivers, file = "Shocks and drivers tidy2.csv", row.names = F)
 
 shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
 
@@ -5520,6 +5527,7 @@ shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$F
 shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
 shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
 
+levels(shockdrivers$Category)
 
 
 ```
@@ -6239,6 +6247,7 @@ noleg<-ggarrange(Causes, nrow = 1, ncol = 1, legend = "none")
 ggarrange(noleg, get_legend(Causes), nrow=2, ncol=1, heights = c(0.9, 0.4))
 
 ggsave(filename="Drivers only.tiff", device="tiff", dpi=600, width=8.9, height=14, units = "cm")
+ggsave(filename="Drivers only.pdf", device= pdf, dpi=600, width=8.9, height=14, units = "cm")
 
 
 
@@ -6259,6 +6268,8 @@ pie1<-ggplot(data=shockcategories[shockcategories$Var2=="Crops",], aes(x="", y=P
   scale_fill_manual(values=cols)+
   #scale_y_continuous(limits = c(0, 1.06))+
   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
+
+driverlegend<-get_legend(pie1)
 
 # pie2<-ggplot(data=shockcategories[shockcategories$Var2=="Livestock",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
 #   theme_bw()+
@@ -6322,7 +6333,6 @@ pie1<-ggplot(data=shockcategories[shockcategories$Var2=="Crops",], aes(x="", y=P
 #Figure S2 PLOT FOR SHOCKS DID NOT RECOVER
 
 ```{r}
-shockdrivers
 
 Norecovery<-data.frame(table(is.na(shockdrivers$Recovery)==T, shockdrivers$Region, shockdrivers$Sector))
 names(Norecovery)[1]<- "NoRecover"
@@ -6347,7 +6357,7 @@ levels(Norecovery$NoRecover)[levels(Norecovery$NoRecover)=="TRUE"]<-"Did not rec
 
 ggplot(data = Norecovery, aes(x=Region, y=Prop, fill=NoRecover))+geom_bar(stat="identity")+facet_wrap(~Sector)+
   theme_bw()+
-  scale_fill_manual(values = c("#9e0142","#5e4fa2" ))+
+  scale_fill_manual(values = c("dodgerblue2","grey70" ))+
   theme(panel.grid = element_blank(), 
         legend.title = element_blank(),
         axis.text = element_text(size=11),
@@ -6359,7 +6369,119 @@ ggplot(data = Norecovery, aes(x=Region, y=Prop, fill=NoRecover))+geom_bar(stat="
 ggsave("Recovered vs. norecoverd.tiff", device = "tiff", dpi=600, width = 18.3, height = 18, units = "cm")
 ```
 
-##Figure 3 - SHOCK SIZE AND RECOVERY PLOTS
+#Figure 3 - Shock size and recovery
+```{r}
+
+#load data
+shocks_df <- shockdrivers
+
+
+#refine the Category names so they plot in a nicer way (with newlines and abbreviations)
+shocks_df$Cat_key <- case_when(
+  shocks_df$Category == "Climate/weather events" ~ "Clim.", 
+  shocks_df$Category == "Climate/weather & geopolitical/economic events" ~ "Clim./Geo.Eco.", 
+  shocks_df$Category == "Climate/weather events & mismanagement" ~ "Clim./Mismngt.", 
+  shocks_df$Category == "Geopolitical/economic events" ~ "Geo.Eco.", 
+  shocks_df$Category == "Mismanagement & geopolitical/economic events" ~ "Mismngt./Geo.Eco.", 
+  shocks_df$Category == "Mismanagement" ~ "Mismngt.", 
+  shocks_df$Category == "Mismanagement & policy change" ~ "Mismngt./Pol.Chng.", 
+  shocks_df$Category == "Policy change" ~ "Pol.Chng.", 
+  shocks_df$Category == "Other" ~ "Other", 
+  shocks_df$Category == "Unknown" ~ "Unknown"
+)
+shocks_df$Cat_key <- factor(shocks_df$Cat_key, levels = c("Clim.", "Clim./Mismngt.", "Clim./Geo.Eco.", "Geo.Eco.","Mismngt./Geo.Eco.","Mismngt.", "Mismngt./Pol.Chng.","Pol.Chng.","Other","Unknown"))
+shocks_df$Category <- factor(shocks_df$Category, levels = c(
+  "Climate/weather events", "Climate/weather events & mismanagement", "Climate/weather & geopolitical/economic events", 
+  "Geopolitical/economic events", "Mismanagement & geopolitical/economic events", "Mismanagement", "Mismanagement & policy change", "Policy change", "Other", "Unknown"
+  )
+  )
+
+#refine the Region names so they plot in a nicer way (with newlines and abbreviations)
+shocks_df$Reg_key <- case_when(
+  shocks_df$Region == "North America" ~ "N. America", 
+  shocks_df$Region == "LACa" ~ "L. America &\nCaribbean", 
+  shocks_df$Region == "EuCA" ~ "Europe &\nC. Asia", 
+  shocks_df$Region == "MENA" ~ "Middle East\n&N. Africa",
+  shocks_df$Region == "SSA" ~ "Sub-Sah.\nAfrica", 
+  shocks_df$Region == "Oceania" ~ "Oceania", 
+  shocks_df$Region == "South Asia" ~ "S. Asia", 
+  shocks_df$Region == "East Asia" ~ "E. Asia"
+)
+shocks_df$Reg_key <- factor(shocks_df$Reg_key, levels = c("N. America", "L. America &\nCaribbean","Europe &\nC. Asia", "Middle East\n&N. Africa", "Sub-Sah.\nAfrica", "S. Asia", "E. Asia", "Oceania"))
+
+Category_cols <- cols<-c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
+Cat_key_cols <- cols<-c("Clim."="#9e0142", "Clim./Mismngt." = "#d53e4f", "Clim./Geo.Eco." = "#f46d43", "Geo.Eco." = "#fdae61", "Mismngt./Geo.Eco." = "#fee08b","Mismngt." = "#e6f598",  "Mismngt./Pol.Chng." = "#abdda4", "Pol.Chng." = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
+# set region colours
+Region_cols <- rep(c("grey90", "grey70"), 4) #RColorBrewer::brewer.pal(name = "Pastel2", n=8)
+names(Region_cols) <- rev(c("N. America", "L. America &\nCaribbean","Europe &\nC. Asia", "Middle East\n&N. Africa", "Sub-Sah.\nAfrica", "S. Asia", "E. Asia", "Oceania"))
+#combine category and region colours into a single names list of colours for use in the plot
+target_cols <- c(Region_cols, Cat_key_cols)
+
+#do each plot for each sector.
+for(target_sector in unique(shocks_df$Sector)){
+#for(target_sector in "Crops"){
+  sector_shocks <- filter(shocks_df, Sector == target_sector)
+  sector_shocks$AbsMagnitude <- sector_shocks$AbsMagnitude/1000000
+  sector_shocks$Recovery_transparency <- case_when(
+    sector_shocks$Recovery2 < 4 ~ 0.1, 
+    sector_shocks$Recovery2 > 3 & sector_shocks$Recovery2 < 7 ~ 0.2,
+    sector_shocks$Recovery2 > 6 & sector_shocks$Recovery2 < 10 ~ 0.35,
+    sector_shocks$Recovery2 > 9 & sector_shocks$Recovery2 < 15 ~ 0.5,
+    sector_shocks$Recovery2 > 14 & sector_shocks$Recovery2 < 21 ~ 0.7,
+    sector_shocks$Recovery2 > 20 ~ 0.9
+  )
+  figure_filename <- sprintf("C:/Users/rsc2/Documents/github/shocks/For submission/rich-cotrell-paper-%s.png", target_sector)
+  #png(file=figure_filename, width=183/2, height=210/2,units="mm", res=100)
+  figure_filename <- sprintf("C:/Users/rsc2/Documents/github/shocks/For submission/rich-cotrell-paper-%s.pdf", target_sector)
+  pdf(file=figure_filename, width=(183*0.0393700787), height=(183*0.0393700787)) #convert mm to inches by mm*0.0393700787
+  chordDiagram(
+    x= sector_shocks[,c("Cat_key", "Reg_key", "AbsMagnitude")],
+    annotationTrack = "grid", symmetric = TRUE, preAllocateTracks = 1.5,
+    grid.col = target_cols, col = alpha.col(Cat_key_cols[sector_shocks$Cat_key], sector_shocks$Recovery_transparency), order = names(target_cols)
+    )
+  circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+      xlim = get.cell.meta.data("xlim")
+      ylim = get.cell.meta.data("ylim")
+      sector.name = get.cell.meta.data("sector.index")
+      circos.text(mean(xlim), ylim[1] + 0.1, sector.name, facing = "clockwise", niceFacing = TRUE, cex=0.8)
+      #circos.text(mean(xlim), ylim[1] + .1, sector.name, facing = "bending.outside", niceFacing = TRUE, adj = c(0, 0))
+      circos.axis(h = "top", labels.cex = 0.8, major.tick.percentage = 0.2, sector.index = sector.name, track.index = 2)
+    }, bg.border = NA)
+  dev.off()
+  
+ # if(target_sector == "Crops"){
+  #   png()
+  #   plot(
+  #     x=rep(1:length(Cat_key_cols), each=5), y=rep(1:length(Cat_key_cols), 5), 
+  #     pch=19,
+  #     col=plot3d::alpha.col(rep(Cat_key_cols, each=5), rep(seq(0.1,0.5, by=0.1), 5))
+  # })
+}#close for target_sector
+
+#create legend
+nx <- sort(unique(sector_shocks$Recovery_transparency))
+ny <- rev(1:length(unique(shocks_df$Category)))
+legend_dots <- data.frame(
+  x = rep((1:length(nx)), length(ny) ), 
+  y = rep(ny, each=length(nx)), 
+  cols = alpha.col(rep(Cat_key_cols,each=length(nx)),  rep(nx, length(ny) )), 
+  stringsAsFactors = FALSE
+)
+pdf(file="C:/Users/rsc2/Documents/github/shocks/For submission/rich-cotrell-paper-figure-legend.pdf", width=183*0.0393700787, height=70*0.0393700787)
+  par(mar=c(0,0,0,0))
+  plot(legend_dots$x, legend_dots$y, col=legend_dots$cols, pch=19, cex=3.8, xlim=c(0,17), ylim=c(0,12), xaxt='n', yaxt='n', ann=FALSE, bty="n")
+  text(x = rep(7,length(levels(shocks_df$Cat_key))) , y=ny, labels=levels(shocks_df$Category), pos=4, cex=0.8)
+  text(x = 1:length(nx), y=rep(12, length(nx)), labels=c("1-3", "4-6", "7-9", "10-14", "15-20", ">20"), cex=0.8)
+dev.off()
+
+
+
+
+
+```
+
+
+##Figure 3 B - SHOCK SIZE AND RECOVERY PLOTS
 ```{r}
 cols<-c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
 
@@ -7434,13 +7556,15 @@ driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
 
 #Figure 1 
 
-fig1<-ggarrange(p1, p3, p2,p4, p5,p7, p6,p8, labels=c("a","c","b","d","e", "g", "f", "h"), ncol=2, nrow=4, legend = "none", align = "hv" , font.label = list(size=10))
+fig1<-ggarrange(p1, p3, p2,p4, p5,p7, p6,p8, labels=c("a","c","b","d","e", "g", "f", "h"), ncol=2, nrow=4, legend = "none", align = "hv" , font.label = list(size=12))
+
+driverlegend<-get_legend(pie1)
 
 fig1<-ggarrange(fig1, driverlegend, nrow=2, ncol=1, heights = c(1,0.15))
 
 ggsave(filename = "Figure 1 - Shock rates over time.tiff", device = "tiff", dpi=600, width = 18, height=16, units = "cm")
 
-ggsave(filename = "Figure 1 - Shock rates over time.pdf", device = pdf, dpi=600, width = 18, height=16, units = "cm")
+ggsave(filename = "Figure 1 - Shock rates over time.pdf", device = pdf, dpi=600, width = 18, height=18, units = "cm")
 
 
 ```
