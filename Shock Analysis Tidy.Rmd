@@ -5506,8 +5506,9 @@ shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=
 
 
 
-#Exclude reunion aquaculture shock (not a shock - gradual decline before a big jump)
+#Exclude shocks where not a shock - gradual decline before a big jump
 shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Réunion"),]
+shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Somalia" & shockdrivers$Year==1994),]
 
 #Rescale recovery times between 0 and 1 for chord plots
 
@@ -7693,6 +7694,8 @@ nrow(shockdrivers[shockdrivers$Sector=="Livestock" & (shockdrivers$Category=="Cl
 
 #Contribution of geopolitical to livestock shocks
 nrow(shockdrivers[shockdrivers$Sector=="Livestock" & (shockdrivers$Category=="Climate/weather & geopolitical/economic events"| shockdrivers$Category=="Geopolitical/economic events"),])/ nrow(shockdrivers[shockdrivers$Sector=="Livestock",])
+
+nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Category=="Other",])/ nrow(shockdrivers[shockdrivers$Sector=="Livestock",])
 
 ##Contribution of overfishing to fisheries
 nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & (shockdrivers$Category=="Mismanagement & geopolitical/economic events"| shockdrivers$Category=="Mismanagement & policy change"| shockdrivers$Category=="Mismanagement"| shockdrivers$Category=="Climate/weather events & mismanagement"),])/ nrow(shockdrivers[shockdrivers$Sector=="Fisheries",])
