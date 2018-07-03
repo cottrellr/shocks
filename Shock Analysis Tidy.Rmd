@@ -6423,12 +6423,9 @@ for(target_sector in unique(shocks_df$Sector)){
   sector_shocks <- filter(shocks_df, Sector == target_sector)
   sector_shocks$AbsMagnitude <- sector_shocks$AbsMagnitude/1000000
   sector_shocks$Recovery_transparency <- case_when(
-    sector_shocks$Recovery2 < 4 ~ 0.1, 
-    sector_shocks$Recovery2 > 3 & sector_shocks$Recovery2 < 7 ~ 0.2,
-    sector_shocks$Recovery2 > 6 & sector_shocks$Recovery2 < 10 ~ 0.35,
-    sector_shocks$Recovery2 > 9 & sector_shocks$Recovery2 < 15 ~ 0.5,
-    sector_shocks$Recovery2 > 14 & sector_shocks$Recovery2 < 21 ~ 0.7,
-    sector_shocks$Recovery2 > 20 ~ 0.9
+    sector_shocks$Recovery2 < 8 ~ 0.3, 
+    sector_shocks$Recovery2 > 7 & sector_shocks$Recovery2 < 16 ~ 0.6,
+    sector_shocks$Recovery2 > 15 ~ 0.9
   )
   figure_filename <- sprintf("C:/Users/rsc2/Documents/github/shocks/For submission/rich-cotrell-paper-%s.png", target_sector)
   #png(file=figure_filename, width=183/2, height=210/2,units="mm", res=100)
@@ -6471,7 +6468,7 @@ pdf(file="C:/Users/rsc2/Documents/github/shocks/For submission/rich-cotrell-pape
   par(mar=c(0,0,0,0))
   plot(legend_dots$x, legend_dots$y, col=legend_dots$cols, pch=19, cex=3.8, xlim=c(0,17), ylim=c(0,12), xaxt='n', yaxt='n', ann=FALSE, bty="n")
   text(x = rep(7,length(levels(shocks_df$Cat_key))) , y=ny, labels=levels(shocks_df$Category), pos=4, cex=0.8)
-  text(x = 1:length(nx), y=rep(12, length(nx)), labels=c("1-3", "4-6", "7-9", "10-14", "15-20", ">20"), cex=0.8)
+  text(x = 1:length(nx), y=rep(12, length(nx)), labels=c("1-7", "8-15", ">15"), cex=0.8)
 dev.off()
 
 
