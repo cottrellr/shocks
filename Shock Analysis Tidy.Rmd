@@ -40,6 +40,7 @@ library(grid)
 library(readr)
 library(plot3D)
 library(circlize)
+library(data.table)
 
 
 ```
@@ -5518,20 +5519,137 @@ shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
 
 
 
-write.csv(shockdrivers, file = "Shocks and drivers tidy2.csv", row.names = F)
+write.csv(shockdrivers, file = "Shocks and drivers tidy3.csv", row.names = F)
 
-shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
+# shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
+# 
+# shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
+# shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
+# shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
+# shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
+# shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
+# 
+# levels(shockdrivers$Category)
 
-shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
-shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
-shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
-shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
-shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
+shockdrivers
+```
 
-levels(shockdrivers$Category)
+
+#Heat Map 
+
+```{r}
+# 
+shockdrivers <- fread("Shocks and drivers tidy3.csv", header=T)
+
+#Africa
+N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe")
+M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena" )
+S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
+W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
+
+#Asia
+Former_USSR <- c("Former USSR")
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea")
+SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
+S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
+W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
+
+#Latin America/Caribbean
+
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands")
+
+C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela")
+
+#Oceania
+Aus_NZ <- c("Australia", "New Zealand")
+Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu")
+Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
+Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands")
+
+#North AMerica
+N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
+
+#Europe
+E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine")
+N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands" )
+S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR")
+W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland" )
+
+
+
+
+
+
+
+
+
+
+sort(unique(shockdrivers$Country))
+
+(synchrony <-
+  shockdrivers %>%
+  mutate(Time = cut(Year, breaks=10)) %>% 
+  count(Country, Sector, Time) %>% 
+  mutate(n=1) %>% 
+  count(Country, Time) %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country),
+         SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                               Country %in% M_Africa ~ "Central Africa",
+                               Country %in% S_Africa ~ "Southern Africa",
+                               Country %in% W_Africa ~ "West Africa",
+                               Country %in% E_Africa ~ "East Africa",
+                               Country %in% Former_USSR ~ "Former USSR",
+                               Country %in% E_Asia ~ "East Asia",
+                               Country %in% SE_Asia ~ "SE Asia",
+                               Country %in% S_Asia ~ "South Asia",
+                               Country %in% W_Asia ~ "Western Asia",
+                               Country %in% Caribbean ~ "Caribbean",
+                               Country %in% C_America ~ "Central America",
+                               Country %in% S_America ~ "South America",
+                               Country %in% N_America ~ "North America",
+                               Country %in% Aus_NZ ~ "Australia/NZ",
+                               Country %in% Micronesia ~ "Micronesia",
+                               Country %in% Melanesia ~ "Melanesia",
+                               Country %in% Polynesia ~ "Polynesia",
+                               Country %in% N_Europe ~ "Northern Europe",
+                               Country %in% E_Europe ~ "Eastern Europe",
+                               Country %in% S_Europe ~ "Southern Europe",
+                               Country %in% W_Europe ~ "Western Europe") %>% 
+           factor()) %>% 
+    mutate(SubRegion = factor(SubRegion, levels(SubRegion)[c(2,4,16,12,11,20,3,18,5,13,22,19,7,8,21,17,6,15,1,9,10, 14)])) %>% 
+  arrange(SubRegion))
+  
+
+
+
+ggplot(data=synchrony, aes(x=Time, y=interaction(Country, SubRegion)))+geom_tile(aes(fill=cut(nn, breaks = 0:4, labels = 1:4), colour="grey25"))+
+  scale_fill_manual(drop=F, values = colorRampPalette(c("Yellow", "red1"))(4),na.value="grey90", name="No.of\nsectors")+
+  #scale_x_discrete(labels=c("1968-73", "1973-78", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73")) 
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.text = element_text(size=6))+
+  guides(colour=F)+
+  ggsave("heatmap.tiff", device = "tiff", dpi=600, width=18, height=15, units = "cm")
+  
+
+
+colorRampPalette(c("Yellow", "red1"))(5)
+        
+  
+ "#FFFF00" "#FFBF00" "#FF7F00" "#FF3F00" "#FF0000"
+
 
 
 ```
+
 
 
 #Figure 1 - MAPPING SHOCK RATES 
