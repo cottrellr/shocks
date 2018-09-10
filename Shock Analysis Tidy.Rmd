@@ -20,6 +20,7 @@ library(mapproj)
 library(sf)#shapefile reading
 library(ggalt)
 library(ggplot2) #plotting
+library(ggforce)
 library(rgdal) 
 library(ggmap)#creating ggmaps
 library(devtools)
@@ -41,6 +42,7 @@ library(readr)
 library(plot3D)
 library(circlize)
 library(data.table)
+library(pBrackets)
 
 
 ```
@@ -5549,7 +5551,7 @@ S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
 W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
 
 #Asia
-Former_USSR <- c("Former USSR")
+
 E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea")
 SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
 S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
@@ -5572,36 +5574,27 @@ Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Sa
 N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
 
 #Europe
-E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine")
+E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine", "Former USSR")
 N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands" )
 S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR")
 W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland" )
 
 
-
-
-
-
-
-
-
-
-sort(unique(shockdrivers$Country))
-
 (synchrony <-
   shockdrivers %>%
-  mutate(Time = cut(Year, breaks=10)) %>% 
-  count(Country, Sector, Time) %>% 
-  mutate(n=1) %>% 
-  count(Country, Time) %>% 
-  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+    mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
                              Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
                              Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
-                             T ~ Country),
-         SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                             T ~ Country)) %>% 
+    arrange(Country) %>% 
+    mutate(Time = cut(Year, breaks=c(1967.5, 1972.5, 1977.5, 1982.5, 1987.5, 1992.5, 1997.5, 2002.5, 2007.5, 2013))) %>%
+    count(Country, Sector, Time) %>%
+    mutate(n=1) %>% 
+    count(Country, Time) %>% 
+    mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
                                Country %in% M_Africa ~ "Central Africa",
                                Country %in% S_Africa ~ "Southern Africa",
                                Country %in% W_Africa ~ "West Africa",
@@ -5623,33 +5616,67 @@ sort(unique(shockdrivers$Country))
                                Country %in% E_Europe ~ "Eastern Europe",
                                Country %in% S_Europe ~ "Southern Europe",
                                Country %in% W_Europe ~ "Western Europe") %>% 
-           factor()) %>% 
+           factor())%>% 
     mutate(SubRegion = factor(SubRegion, levels(SubRegion)[c(2,4,16,12,11,20,3,18,5,13,22,19,7,8,21,17,6,15,1,9,10, 14)])) %>% 
-  arrange(SubRegion))
-  
+    arrange(SubRegion))
+ 
+
+
+length(unique(synchrony$Country[synchrony$SubRegion=="Caribbean" ]))
+
+
+#no of countries per region
+Sregion_nos <- c()
+
+for (i in 1:length(levels(synchrony$SubRegion))){
+  Sregion_nos <- c(Sregion_nos, length(unique(synchrony$Country[synchrony$SubRegion==levels(synchrony$SubRegion)[i]])))
+}
+Sregion_nos2 <- cumsum(Sregion_nos)
+Sregion_nos2 <- Sregion_nos2+0.5
 
 
 
-ggplot(data=synchrony, aes(x=Time, y=interaction(Country, SubRegion)))+geom_tile(aes(fill=cut(nn, breaks = 0:4, labels = 1:4), colour="grey25"))+
-  scale_fill_manual(drop=F, values = colorRampPalette(c("Yellow", "red1"))(4),na.value="grey90", name="No.of\nsectors")+
-  #scale_x_discrete(labels=c("1968-73", "1973-78", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73", "1968-73")) 
+
+
+
+
+heat_map <- ggplot(data=synchrony, aes(x=Time, y=interaction(Country, SubRegion)))+
+  geom_tile(aes(fill=cut(nn, breaks = 0:3, labels = 1:3)), colour="black")+
+  geom_hline(yintercept = Sregion_nos2,  alpha=0.4, linetype=3)+
+  scale_fill_manual( values = colorRampPalette(c("Yellow", "Red1"))(3), na.value="salmon")+
+  scale_x_discrete(labels=c("1968-72", "1973-77", "1978-82", "1983-87", "1988-92", "1993-97", "1998-2002", "2003-2007", "2008-2013"))+
   theme_bw()+
-  theme(panel.grid = element_blank(),
-        axis.text = element_text(size=6))+
-  guides(colour=F)+
-  ggsave("heatmap.tiff", device = "tiff", dpi=600, width=18, height=15, units = "cm")
+  theme(panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.background = element_rect(fill="white"),
+    legend.box.just = "center",
+    legend.position = "bottom",
+    axis.text.x = element_text(size=8, angle = 35, hjust =1 ),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_line(colour = "grey75"),
+    axis.title = element_text(size=9),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=7),
+    legend.key.height = unit(0.01, "mm"),
+    legend.key.width = unit(1, "cm"),
+    plot.margin = unit(c(0.1,0,0,-0.2), "cm"))+
+    guides(colour=F, fill = guide_legend(title.position = "bottom", title.hjust = 0.5))+
+    labs(y="", x=bquote(bold(Year)), fill="No. of sectors")+
+    
+    ggsave("heatmap.tiff", device = "tiff", dpi=600, width=12, height=15, units = "cm")
   
 
-
-colorRampPalette(c("Yellow", "red1"))(5)
-        
-  
- "#FFFF00" "#FFBF00" "#FF7F00" "#FF3F00" "#FF0000"
+annotate_figure(heat_map, left =text_grob("Polynesia\nMicronesia\nMelanesia\nAustralia/NZ\nSE Asia\nEast Asia\nSouth Asia\nWestern Asia\nFormerUSSR\nEastern Europe\n", vjust = 0.5, color="black", size=7))
 
 
+labels <-as.vector(rev(unique(synchrony$SubRegion)))
 
 ```
-
+  
+  
+  
+  
+  
 
 
 #Figure 1 - MAPPING SHOCK RATES 
