@@ -32,17 +32,17 @@ library(colorspace) #adding colour palettes for plots
 library(mgcv) #gams
 library(car) # linear models
 library(ggrepel) #ggrepel labels on point chart
-library(fANCOVA) #loess span fit function 
-library(forecast)
-library(earlywarnings)
-library(Kendall)
-library(png)
-library(grid) 
-library(readr)
-library(plot3D)
-library(circlize)
+# library(fANCOVA) #loess span fit function 
+# library(forecast)
+# library(earlywarnings)
+# library(Kendall)
+# library(png)
+# library(grid) 
+# library(readr)
+# library(plot3D)
+# library(circlize)
 library(data.table)
-library(pBrackets)
+
 
 
 ```
@@ -5580,6 +5580,9 @@ S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Port
 W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland" )
 
 
+
+#arrange data
+
 (synchrony <-
   shockdrivers %>%
     mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
@@ -5599,7 +5602,7 @@ W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherla
                                Country %in% S_Africa ~ "Southern Africa",
                                Country %in% W_Africa ~ "West Africa",
                                Country %in% E_Africa ~ "East Africa",
-                               Country %in% Former_USSR ~ "Former USSR",
+                               #Country %in% Former_USSR ~ "Former USSR",
                                Country %in% E_Asia ~ "East Asia",
                                Country %in% SE_Asia ~ "SE Asia",
                                Country %in% S_Asia ~ "South Asia",
@@ -5617,12 +5620,10 @@ W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherla
                                Country %in% S_Europe ~ "Southern Europe",
                                Country %in% W_Europe ~ "Western Europe") %>% 
            factor())%>% 
-    mutate(SubRegion = factor(SubRegion, levels(SubRegion)[c(2,4,16,12,11,20,3,18,5,13,22,19,7,8,21,17,6,15,1,9,10, 14)])) %>% 
+    mutate(SubRegion = factor(SubRegion, levels(SubRegion)[c(11,2,4,15,12,21,18,7,10,19,3,17,5,20,16,6,14,1,8,9,13)])) %>% 
     arrange(SubRegion))
  
 
-
-length(unique(synchrony$Country[synchrony$SubRegion=="Caribbean" ]))
 
 
 #no of countries per region
@@ -5635,36 +5636,75 @@ Sregion_nos2 <- cumsum(Sregion_nos)
 Sregion_nos2 <- Sregion_nos2+0.5
 
 
+#Create y-axis list of countries/regions
+
+edit_synchrony <- synchrony[!duplicated(synchrony$Country),]
 
 
 
+# Region lists
+region_list <- split(edit_synchrony$SubRegion, rleid(edit_synchrony$SubRegion))
+region_list <- lapply(region_list, as.character)
 
+flatten_regions <-as.list(c())
+
+for (i in 1:length(region_list)){
+  region <- region_list[[i]]
+  selector <- ceiling(length(region)/2)+1
+  label <- as.vector(region[selector])
+  element <- gsub(label, "", region)
+  element[selector] <- label
+  flatten_regions[[i]] <- element
+}
+new_names <- unlist(flatten_regions)
+  
+?round
+
+nrow(synchrony)
+
+
+#heatmap
 
 heat_map <- ggplot(data=synchrony, aes(x=Time, y=interaction(Country, SubRegion)))+
   geom_tile(aes(fill=cut(nn, breaks = 0:3, labels = 1:3)), colour="black")+
-  geom_hline(yintercept = Sregion_nos2,  alpha=0.4, linetype=3)+
+  geom_hline(yintercept = Sregion_nos2,  alpha=0.25, linetype=1)+
   scale_fill_manual( values = colorRampPalette(c("Yellow", "Red1"))(3), na.value="salmon")+
   scale_x_discrete(labels=c("1968-72", "1973-77", "1978-82", "1983-87", "1988-92", "1993-97", "1998-2002", "2003-2007", "2008-2013"))+
+  scale_y_discrete(labels=new_names)+
   theme_bw()+
   theme(panel.grid.major.x = element_blank(),
-    panel.grid.major.y = element_blank(),
-    panel.background = element_rect(fill="white"),
-    legend.box.just = "center",
-    legend.position = "bottom",
-    axis.text.x = element_text(size=8, angle = 35, hjust =1 ),
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_line(colour = "grey75"),
-    axis.title = element_text(size=9),
-    legend.title = element_text(size=8),
-    legend.text = element_text(size=7),
-    legend.key.height = unit(0.01, "mm"),
-    legend.key.width = unit(1, "cm"),
-    plot.margin = unit(c(0.1,0,0,-0.2), "cm"))+
-    guides(colour=F, fill = guide_legend(title.position = "bottom", title.hjust = 0.5))+
-    labs(y="", x=bquote(bold(Year)), fill="No. of sectors")+
-    
-    ggsave("heatmap.tiff", device = "tiff", dpi=600, width=12, height=15, units = "cm")
+        panel.grid.major.y = element_line(),
+        panel.background = element_rect(fill="white"),
+        legend.box.just = "center",
+        legend.position = "bottom",
+        axis.text.x = element_text(size=8, angle = 35, hjust =1 ),
+        axis.text.y = element_text(size=8, face="bold"),
+        #axis.ticks.y = element_line(colour = "grey75"),
+        axis.ticks.y = element_blank(),
+        axis.title = element_text(size=9),
+        legend.title = element_text(size=8),
+        legend.text = element_text(size=7),
+        legend.key.height = unit(0.01, "mm"),
+        legend.key.width = unit(1, "cm"),
+        plot.margin = unit(c(0.1,0,0,-0.2), "cm"))+
+  guides(colour=F, fill = guide_legend(title.position = "bottom", title.hjust = 0.5))+
+  labs(y="", x=bquote(bold(Year)), fill="No. of sectors")+
   
+  ggsave("heatmap.tiff", device = "tiff", dpi=600, width=12, height=15, units = "cm")+
+  ggsave("heatmap.pdf", device = "pdf", dpi=600, width=12, height=15, units = "cm")
+
+
+
+
+
+
+
+class(srstring)
+synchrony$SubRegion
+
+heat_map
+grid.locator(unit="native")
+
 
 annotate_figure(heat_map, left =text_grob("Polynesia\nMicronesia\nMelanesia\nAustralia/NZ\nSE Asia\nEast Asia\nSouth Asia\nWestern Asia\nFormerUSSR\nEastern Europe\n", vjust = 0.5, color="black", size=7))
 
