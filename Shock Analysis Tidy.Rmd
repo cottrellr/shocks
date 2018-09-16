@@ -5102,7 +5102,7 @@ for (i in 1:length(levels(aggaqua$Country))){
       Country<-levels(aggaqua$Country)[i]
       Region <- aggaqua$Continent[aggaqua$Country==levels(aggaqua$Country)[i]][1]
       Year<-years[shockInd+1][k]
-      fiveyearmean<-median(c(values[shockInd][k],values[shockInd-1][k], values[shockInd-2][k], values[shockInd-3][k], values[shockInd-4][k], values[shockInd-5][k],values[shockInd-6][k], values[shockInd-7][k], values[shockInd-8][k]))
+      fiveyearmean<-median(c(values[shockInd][k],values[shockInd-1][k], values[shockInd-2][k], values[shockInd-3][k], values[shockInd-4][k], values[shockInd-5][k],values[shockInd-6][k]))#, values[shockInd-7][k], values[shockInd-8][k]))
       AbsMagnitude <- fiveyearmean-values[shockInd+1][k]
       PropMagnitude <- 1-((values[shockInd+1][k])/fiveyearmean)
       Recovery<-which(values[(shockInd+2)[k]:53]>=(fiveyearmean*0.95))[1]
@@ -5545,28 +5545,28 @@ shockdrivers <- fread("Shocks and drivers tidy3.csv", header=T)
 
 #Africa
 N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
-E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe")
-M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena" )
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of")
+M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena", "Congo, Dem. Rep. of the", "Democratic Republic of the Congo" )
 S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
 W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
 
 #Asia
 
-E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea")
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep")
 SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
 S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
 W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
 
 #Latin America/Caribbean
 
-Caribbean <- c("Antigua and Barbuda", "Anguilla", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands")
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
 
 C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
-S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of")
 
 #Oceania
 Aus_NZ <- c("Australia", "New Zealand")
-Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu")
+Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Fiji, Republic of" )
 Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
 Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands")
 
@@ -5651,16 +5651,26 @@ region_list <- lapply(region_list, as.character)
 
 flatten_regions <-as.list(c())
 
-# lapply(region_list, function(count){
-#   region <- region_list[[count]]
-#   selector <- ceiling(length(region)/2)+1
-#   label <- as.vector(region[selector])
-#   element <- gsub(label, "", region)
-#   element[selector] <- label
-#   flatten_regions[[i]] <- element
-# })
+flatten_regions <-
+  lapply(region_list, function(target_region){
+  #region <- target_region
+  selector <- ceiling(length(target_region)/2)+1
+  label <- target_region[1]
+  element <- gsub(label, "", target_region)
+  element[selector] <- label
+  return(element)
+})
 
 
+flatten_regions <-
+  lapply(region_list, function(region){
+  region_length <- length(region)
+  pos <- ceiling(region_length/2)+1
+  label <- region[1]
+  element <- rep("", region_length) 
+  element[pos] <- label
+  return(element)
+})
 
 
 
@@ -5755,11 +5765,80 @@ ggarrange(ggarrange(heat_map, heat_map_country, labels=c("a","b"), nrow=1, ncol=
 
 
 
-#response diversity
-
+#response across sectors
 
 ```{r}
+#standardise Country names 
 
+aggcrops <- 
+  aggcrops %>%
+  map_if(is.factor, as.character) %>% 
+  as_data_frame() %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country))
+
+
+
+agglivestock <- 
+  agglivestock %>% 
+  map_if(is.factor, as.character) %>% 
+  as_data_frame() %>% 
+   mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country))
+
+
+
+aggfisheries <- 
+  aggfisheries %>% 
+  map_if(is.factor, as.character) %>% 
+  as_data_frame() %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country))
+
+
+
+aggaqua <- 
+  aggaqua %>% 
+  map_if(is.factor, as.character) %>% 
+  as_data_frame() %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country))
+
+
+
+shockdrivers <-
+shockdrivers %>% 
+  rename(Code = Codes) %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country))
+
+
+#normalised production data
 countries_interest <- unique(shockdrivers$Country)
 
 normalise <- function(x){
@@ -5767,48 +5846,333 @@ normalise <- function(x){
   return(norm)
 }
 
-normalised_crops <- aggcrops %>% 
-  filter(Country %in% countries_interest) %>% 
-  mutate(Code = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>% 
-  mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
-                               Country %in% M_Africa ~ "Central Africa",
-                               Country %in% S_Africa ~ "Southern Africa",
-                               Country %in% W_Africa ~ "West Africa",
-                               Country %in% E_Africa ~ "East Africa",
-                               #Country %in% Former_USSR ~ "Former USSR",
-                               Country %in% E_Asia ~ "East Asia",
-                               Country %in% SE_Asia ~ "SE Asia",
-                               Country %in% S_Asia ~ "South Asia",
-                               Country %in% W_Asia ~ "Western Asia",
-                               Country %in% Caribbean ~ "Caribbean",
-                               Country %in% C_America ~ "Central America",
-                               Country %in% S_America ~ "South America",
-                               Country %in% N_America ~ "North America",
-                               Country %in% Aus_NZ ~ "Australia/NZ",
-                               Country %in% Micronesia ~ "Micronesia",
-                               Country %in% Melanesia ~ "Melanesia",
-                               Country %in% Polynesia ~ "Polynesia",
-                               Country %in% N_Europe ~ "Northern Europe",
-                               Country %in% E_Europe ~ "Eastern Europe",
-                               Country %in% S_Europe ~ "Southern Europe",
-                               Country %in% W_Europe ~ "Western Europe"
-                              )) %>% 
+
+normalised_total <- 
+  arrange(bind_rows
+          (normalised_crops <- 
+              aggcrops %>% 
+              filter(Country %in% countries_interest) %>% 
+              mutate(Code = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>% 
+              mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                                           Country %in% M_Africa ~ "Central Africa",
+                                           Country %in% S_Africa ~ "Southern Africa",
+                                           Country %in% W_Africa ~ "West Africa",
+                                           Country %in% E_Africa ~ "East Africa",
+                                           #Country %in% Former_USSR ~ "Former USSR",
+                                           Country %in% E_Asia ~ "East Asia",
+                                           Country %in% SE_Asia ~ "SE Asia",
+                                           Country %in% S_Asia ~ "South Asia",
+                                           Country %in% W_Asia ~ "Western Asia",
+                                           Country %in% Caribbean ~ "Caribbean",
+                                           Country %in% C_America ~ "Central America",
+                                           Country %in% S_America ~ "South America",
+                                           Country %in% N_America ~ "North America",
+                                           Country %in% Aus_NZ ~ "Australia/NZ",
+                                           Country %in% Micronesia ~ "Micronesia",
+                                           Country %in% Melanesia ~ "Melanesia",
+                                           Country %in% Polynesia ~ "Polynesia",
+                                           Country %in% N_Europe ~ "Northern Europe",
+                                           Country %in% E_Europe ~ "Eastern Europe",
+                                           Country %in% S_Europe ~ "Southern Europe",
+                                           Country %in% W_Europe ~ "Western Europe"
+              )) %>% 
+              group_by(Country) %>% 
+              nest() %>% 
+              mutate(norm_value = map(data, ~normalise(.$Value)))%>% 
+              unnest(data, norm_value) %>% 
+              filter(Country %in% countries_interest) %>% 
+              mutate(Sector = "Crops"),
+            
+            normalised_livestock <- 
+              agglivestock %>% 
+              filter(Country %in% countries_interest) %>% 
+              mutate(Code = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>% 
+              mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                                           Country %in% M_Africa ~ "Central Africa",
+                                           Country %in% S_Africa ~ "Southern Africa",
+                                           Country %in% W_Africa ~ "West Africa",
+                                           Country %in% E_Africa ~ "East Africa",
+                                           #Country %in% Former_USSR ~ "Former USSR",
+                                           Country %in% E_Asia ~ "East Asia",
+                                           Country %in% SE_Asia ~ "SE Asia",
+                                           Country %in% S_Asia ~ "South Asia",
+                                           Country %in% W_Asia ~ "Western Asia",
+                                           Country %in% Caribbean ~ "Caribbean",
+                                           Country %in% C_America ~ "Central America",
+                                           Country %in% S_America ~ "South America",
+                                           Country %in% N_America ~ "North America",
+                                           Country %in% Aus_NZ ~ "Australia/NZ",
+                                           Country %in% Micronesia ~ "Micronesia",
+                                           Country %in% Melanesia ~ "Melanesia",
+                                           Country %in% Polynesia ~ "Polynesia",
+                                           Country %in% N_Europe ~ "Northern Europe",
+                                           Country %in% E_Europe ~ "Eastern Europe",
+                                           Country %in% S_Europe ~ "Southern Europe",
+                                           Country %in% W_Europe ~ "Western Europe"
+              )) %>% 
+              group_by(Country) %>% 
+              nest() %>% 
+              mutate(norm_value = map(data, ~normalise(.$Value)))%>% 
+              unnest(data, norm_value) %>% 
+              filter(Country %in% countries_interest) %>% 
+              mutate(Sector = "Livestock"),
+            
+            normalised_fisheries <- 
+              aggfisheries %>% 
+              filter(Country %in% countries_interest) %>% 
+              rename(Code=Codes) %>% 
+              select(Country, Year, Value, Continent, Code) %>% 
+              mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                                           Country %in% M_Africa ~ "Central Africa",
+                                           Country %in% S_Africa ~ "Southern Africa",
+                                           Country %in% W_Africa ~ "West Africa",
+                                           Country %in% E_Africa ~ "East Africa",
+                                           #Country %in% Former_USSR ~ "Former USSR",
+                                           Country %in% E_Asia ~ "East Asia",
+                                           Country %in% SE_Asia ~ "SE Asia",
+                                           Country %in% S_Asia ~ "South Asia",
+                                           Country %in% W_Asia ~ "Western Asia",
+                                           Country %in% Caribbean ~ "Caribbean",
+                                           Country %in% C_America ~ "Central America",
+                                           Country %in% S_America ~ "South America",
+                                           Country %in% N_America ~ "North America",
+                                           Country %in% Aus_NZ ~ "Australia/NZ",
+                                           Country %in% Micronesia ~ "Micronesia",
+                                           Country %in% Melanesia ~ "Melanesia",
+                                           Country %in% Polynesia ~ "Polynesia",
+                                           Country %in% N_Europe ~ "Northern Europe",
+                                           Country %in% E_Europe ~ "Eastern Europe",
+                                           Country %in% S_Europe ~ "Southern Europe",
+                                           Country %in% W_Europe ~ "Western Europe"
+              )) %>% 
+              mutate(Sector="Fisheries") %>% 
+              group_by(Country) %>% 
+              nest() %>% 
+              mutate(norm_value = map(data, ~normalise(.$Value)))%>% 
+              unnest(data, norm_value) %>% 
+              filter(Country %in% countries_interest),
+            
+            normalised_aquaculture <- aggaqua %>% 
+              filter(Country %in% countries_interest) %>% 
+              rename(Code=Codes) %>% 
+              select(Country, Year, Value, Continent, Code) %>% 
+              mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                                           Country %in% M_Africa ~ "Central Africa",
+                                           Country %in% S_Africa ~ "Southern Africa",
+                                           Country %in% W_Africa ~ "West Africa",
+                                           Country %in% E_Africa ~ "East Africa",
+                                           #Country %in% Former_USSR ~ "Former USSR",
+                                           Country %in% E_Asia ~ "East Asia",
+                                           Country %in% SE_Asia ~ "SE Asia",
+                                           Country %in% S_Asia ~ "South Asia",
+                                           Country %in% W_Asia ~ "Western Asia",
+                                           Country %in% Caribbean ~ "Caribbean",
+                                           Country %in% C_America ~ "Central America",
+                                           Country %in% S_America ~ "South America",
+                                           Country %in% N_America ~ "North America",
+                                           Country %in% Aus_NZ ~ "Australia/NZ",
+                                           Country %in% Micronesia ~ "Micronesia",
+                                           Country %in% Melanesia ~ "Melanesia",
+                                           Country %in% Polynesia ~ "Polynesia",
+                                           Country %in% N_Europe ~ "Northern Europe",
+                                           Country %in% E_Europe ~ "Eastern Europe",
+                                           Country %in% S_Europe ~ "Southern Europe",
+                                           Country %in% W_Europe ~ "Western Europe"
+              )) %>% 
+              mutate(Sector="Aquaculture") %>% 
+              group_by(Country) %>% 
+              nest() %>% 
+              mutate(norm_value = map(data, ~normalise(.$Value)))%>% 
+              unnest(data, norm_value) %>% 
+              filter(Country %in% countries_interest)
+            
+          ), 
+          Country
+          ) %>% 
+  mutate(Code = case_when(Country == "St. Vin.&Gren." ~ "VCT", 
+                          Country == "N. Korea" ~ "PRK", 
+                           T ~ Code))
+            
+            
+
+#Find production changes
+
+lag_diff <- function(x){
+  diff <- x - lag(x)
+}
+
+join_df <- function(df1, df2){
+  join_together <- left_join(df1, df2, by=c("Code", "Year", "Sector"))
+  return(join_together)
+}
+
+
+
+nested_production <- 
+  normalised_total %>% 
+  group_by(Country) %>% 
+  nest() %>%
+  mutate(detrended = purrr::map(data, ~resid(loess(data = ., norm_value ~ Year, span=0.6)))) %>% 
+  unnest(data, detrended) %>% 
+  group_by(Country, Sector) %>% 
+  nest() %>% 
+  mutate(diff = map(data, ~lag_diff(.$detrended))) %>% 
+  unnest(data, diff) %>% 
   group_by(Country) %>% 
   nest() %>% 
-  mutate(norm_value = map(data, ~normalise(.$Value)))%>% 
-  unnest(data, norm_value) %>% 
-  filter(Country %in% countries_interest)
+  mutate(shocks = map(data, ~ join_df(., shockdrivers))) %>% 
+  unnest(shocks) %>% 
+  mutate(occurence = case_when(!is.na(Country1) ~ Year)) %>%
+  group_by(Country) %>% 
+  nest() %>% 
+  mutate(Plot = purrr::map(data, ~ggplot(., aes(x=Year, y=diff, colour=Sector ))+geom_line(size=1)+theme_classic()+
+                             geom_text(aes(label=unique(Country1)[!is.na(unique(Country1))]), x=1963, y=1, colour="black")+
+                             #scale_y_continuous(limits=c(-5,5))+
+                             geom_vline(aes(xintercept=occurence, colour=Sector, linetype=Sector)) +
+                             scale_color_manual(values = c(Aquaculture ="grey50", Crops = "black", Fisheries = "dodgerblue", Livestock = "firebrick"))+
+                             annotate("rect", xmin=-Inf, xmax=Inf, ymin=-1,ymax=1, colour="grey90", alpha=0.1))) 
+  
+
+
+pdf("normalised_prod.pdf", paper="a4r")
+invisible(lapply(nested_production$Plot, print))
+dev.off()
+
+
+unnested_production <- 
+  normalised_total %>% 
+  group_by(Country) %>% 
+  nest() %>%
+  mutate(detrended = purrr::map(data, ~resid(loess(data = ., norm_value ~ Year, span=0.6)))) %>% 
+  unnest(data, detrended) %>% 
+  group_by(Country, Sector) %>% 
+  nest() %>% 
+  mutate(diff = map(data, ~lag_diff(.$detrended))) %>% 
+  unnest(data, diff) %>% 
+  group_by(Country) %>% 
+  nest() %>% 
+  mutate(shocks = map(data, ~ join_df(., shockdrivers))) %>% 
+  unnest(shocks) %>% 
+  mutate(occurence = case_when(!is.na(Country1) ~ TRUE,
+                               T ~ FALSE))
+  
+
+unnested_crops <- 
+  unnested_production %>% 
+  filter(Sector =="Crops") %>% 
+  select(Code, Year, SubRegion, diff, detrended, occurence)
+  
+  
+unnested_livestock <- 
+  unnested_production %>% 
+  filter(Sector =="Livestock")%>% 
+  select( Code, Year, SubRegion, diff, detrended, occurence)
+
+unnested_fisheries <- 
+  unnested_production %>% 
+  filter(Sector =="Fisheries")%>% 
+  select(Code, Year, SubRegion, diff, detrended, occurence)
+
+unnested_aquaculture <- 
+  unnested_production %>% 
+  filter(Sector =="Aquaculture")%>% 
+  select( Code, Year, SubRegion, diff, detrended, occurence)
 
 
 
-wilcox.test(y,x) # where y and x are numeric
 
-normalised_crops  %>% 
-  filter(Country=="Afghanistan") %>% 
-  ggplot(aes(x=Year, y=norm_value))+geom_line()+theme_classic()
+crop_shocks <- 
+  shockdrivers %>% 
+  filter(Sector=="Crops") %>% 
+  left_join(., unnested_crops, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion, Code, AbsMagnitude, Recovery2, Category, diff) %>% 
+  rename(Crop_change = diff)
+
+livestock_shocks <- 
+  shockdrivers %>% 
+  filter(Sector=="Livestock") %>% 
+  left_join(., unnested_livestock, by=c("Code", "Year"))
+
+fisheries_shocks <- 
+  shockdrivers %>% 
+  filter(Sector=="Fisheries") %>% 
+  left_join(., unnested_fisheries, by=c("Code", "Year"))
+
+aquaculture_shocks <- 
+  shockdrivers %>% 
+  filter(Sector=="Aquaculture") %>% 
+  left_join(., unnested_aquaculture, by=c("Code", "Year"))
 
 
 
+```
+
+
+
+
+
+
+```{r}
+library(randomForest)
+
+data1 <- fread("car.data.csv") %>% 
+  rename(BuyingPrice=V1, Maintenance=V2, NumDoors=V3, NumPersons=V4, BootSpace=V5, Safety = V6, Condition = V7) %>% 
+  mutate_if(is.character, as.factor)
+  
+  
+str(data1)
+
+
+
+set.seed(100)
+train <- sample(nrow(data1), 0.7*nrow(data1), replace = TRUE)
+TrainSet <- data1[train,]
+ValidSet <- data1[-train,]
+summary(TrainSet)
+summary(ValidSet)
+
+
+model1 <- randomForest(Condition ~ ., data = TrainSet, importance = TRUE)
+model1
+
+
+# Fine tuning parameters of Random Forest model
+model2 <- randomForest(Condition ~ ., data = TrainSet, ntree = 500, mtry = 6, importance = TRUE)
+model2
+
+
+predTrain <- predict(model2, TrainSet, type = "class")
+# Checking classification accuracy
+table(predTrain, TrainSet$Condition)  
+
+
+
+# Predicting on Validation set
+predValid <- predict(model2, ValidSet, type = "class")
+# Checking classification accuracy
+mean(predValid == ValidSet$Condition)                    
+table(predValid,ValidSet$Condition)
+
+
+# To check important variables
+importance(model2)       
+varImpPlot(model2)        
+
+importance(model2)
+varImpPlot(model2)
+
+
+a=c()
+i=5
+for (i in 3:8) {
+  model3 <- randomForest(Condition ~ ., data = TrainSet, ntree = 500, mtry = i, importance = TRUE)
+  predValid <- predict(model3, ValidSet, type = "class")
+  a[i-2] = mean(predValid == ValidSet$Condition)
+}
+ 
+a
+ 
+plot(3:8,a)
 
 
 
