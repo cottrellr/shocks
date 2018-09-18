@@ -36,8 +36,8 @@ library(ggrepel) #ggrepel labels on point chart
 # library(forecast)
 # library(earlywarnings)
 # library(Kendall)
-# library(png)
-# library(grid) 
+library(png)
+library(grid) 
 # library(readr)
 # library(plot3D)
 # library(circlize)
@@ -4820,7 +4820,7 @@ ggplot(data = shocksovertime, aes(x=Year, y=Freq, group=interaction(Average, Spa
         panel.background = element_blank())+
   labs(y="Shock frequency")
 
-ggsave(filename = "Sensitivity analysis - all ensemble lines with aqua.pdf", device = pdf, dpi=600, width=7, height=5)
+#ggsave("Sensitivity analysis - all ensemble lines with aqua.pdf", device = pdf, dpi=600, width=7, height=5)
 
 #ggsave(filename = "Sensitivity analysis - all ensemble lines wo aqua.pdf", device = pdf, dpi=600, width=7, height=5)
 
@@ -4881,7 +4881,7 @@ FreqShocks<-ggplot(data=av.shocks, aes(x=Year, y=Freq))+
   labs(x=bquote(bold(Year)), y=bquote(bold(Shock~frequency)))
 
 
-ggsave(filename = "Sensitivity analysis - total freq with confidence.tiff", device = "tiff", dpi=600, width=6, height=4)
+#ggsave(filename = "Sensitivity analysis - total freq with confidence.tiff", device = "tiff", dpi=600, width=6, height=4)
 
 #ggsave(filename = "Sensitivity analysis - total freq with confidence wo aqua.tiff", device = "tiff", dpi=600, width=6, height=4)
 
@@ -5523,13 +5523,13 @@ shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
 
 write.csv(shockdrivers, file = "Shocks and drivers tidy3.csv", row.names = F)
 
-# shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
-# 
-# shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
-# shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
-# shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
-# shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
-# shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
+shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
+
+shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
+shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[shockcategories$Var2=="Crops"])
+shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
+shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
+shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
 # 
 # levels(shockdrivers$Category)
 
@@ -5537,7 +5537,7 @@ shockdrivers
 ```
 
 
-#Heat Map 
+#Figure 3 - Heat Map 
 
 ```{r}
 # 
@@ -5649,18 +5649,19 @@ edit_synchrony <- synchrony[!duplicated(synchrony$Country),]
 region_list <- split(edit_synchrony$SubRegion, rleid(edit_synchrony$SubRegion))
 region_list <- lapply(region_list, as.character)
 
+
+# 
+# flatten_regions <-
+#   lapply(region_list, function(target_region){
+#   #region <- target_region
+#   selector <- ceiling(length(target_region)/2)+1
+#   label <- target_region[1]
+#   element <- gsub(label, "", target_region)
+#   element[selector] <- label
+#   return(element)
+# })
+
 flatten_regions <-as.list(c())
-
-flatten_regions <-
-  lapply(region_list, function(target_region){
-  #region <- target_region
-  selector <- ceiling(length(target_region)/2)+1
-  label <- target_region[1]
-  element <- gsub(label, "", target_region)
-  element[selector] <- label
-  return(element)
-})
-
 
 flatten_regions <-
   lapply(region_list, function(region){
@@ -5672,19 +5673,19 @@ flatten_regions <-
   return(element)
 })
 
+new_names <- as.vector(unlist(flatten_regions))
 
 
+# for (i in 1:length(region_list)){
+#   region <- region_list[[i]]
+#   selector <- ceiling(length(region)/2)+1
+#   label <- as.vector(region[selector])
+#   element <- gsub(label, "", region)
+#   element[selector] <- label
+#   flatten_regions[[i]] <- element
+# }
 
-for (i in 1:length(region_list)){
-  region <- region_list[[i]]
-  selector <- ceiling(length(region)/2)+1
-  label <- as.vector(region[selector])
-  element <- gsub(label, "", region)
-  element[selector] <- label
-  flatten_regions[[i]] <- element
-}
-new_names <- unlist(flatten_regions)
-  
+   
 
 
 
@@ -5706,9 +5707,9 @@ heat_map <- ggplot(data=synchrony, aes(x=Time, y=interaction(Country, SubRegion)
         axis.text.y = element_text(size=8, face="bold"),
         #axis.ticks.y = element_line(colour = "grey75"),
         axis.ticks.y = element_blank(),
-        axis.title = element_text(size=9),
-        legend.title = element_text(size=8),
-        legend.text = element_text(size=7),
+        axis.title = element_text(size=11),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
         legend.key.height = unit(0.01, "mm"),
         legend.key.width = unit(1, "cm"),
         plot.margin = unit(c(0.1,0.5,0,-0.2), "cm"))+
@@ -5740,9 +5741,9 @@ heat_map_country <- ggplot(data=synchrony %>%
         axis.text.y = element_text(size=8, face="bold"),
         #axis.ticks.y = element_line(colour = "grey75"),
         axis.ticks.y = element_blank(),
-        axis.title = element_text(size=9),
-        legend.title = element_text(size=8),
-        legend.text = element_text(size=7),
+        axis.title = element_text(size=11),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10),
         legend.key.height = unit(0.01, "mm"),
         legend.key.width = unit(1, "cm"),
         plot.margin = unit(c(0.1,0.5,0,-0.2), "cm"))+
@@ -5751,30 +5752,37 @@ heat_map_country <- ggplot(data=synchrony %>%
   geom_text(data = double_regions, aes(x=x, y=y, label=Region), size=1.75, colour="grey50", hjust=0)+
   
   ggsave("heatmap2.tiff", device = "tiff", dpi=600, width=12, height=15, units = "cm")+
-  ggsave("heatmap2.pdf", device = "pdf", dpi=600, width=12, height=15, units = "cm")
+  ggsave("heatmap2.pdf", device = "pdf", dpi=600, width=9, height=12, units = "cm")
 
 
 legend <-  get_legend(heat_map)
 
-ggarrange(ggarrange(heat_map, heat_map_country, labels=c("a","b"), nrow=1, ncol=2, legend = F), legend, nrow=2, ncol=1, heights = c(1,0.1)) +
-  ggsave("heatmap3.tiff", device="tiff", dpi=600, width = 18, height=15, units="cm")+
-  ggsave("heatmap3.pdf", device="pdf", dpi=600, width = 18, height=15, units="cm")
+ggarrange(ggarrange(heat_map, heat_map_country, labels=c("a","b"), nrow=1, ncol=2, legend = F), legend, nrow=2, ncol=1, heights = c(1,0.1), font.label = list(size=12)) +
+  ggsave("heatmap3.tiff", device="tiff", dpi=600, width = 18.3, height=15, units="cm")+
+  ggsave("heatmap3.pdf", device="pdf", dpi=600, width = 18.3, height=15, units="cm")
 
 
 ```
 
 
 
-#response across sectors
+# Fig 4 - response across sectors
 
 ```{r}
 #standardise Country names 
+
+shockdrivers <- fread("Shocks and drivers tidy3.csv", header=T)
 
 aggcrops <- 
   aggcrops %>%
   map_if(is.factor, as.character) %>% 
   as_data_frame() %>% 
   mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Wallis and Futuna Islands", "Wallis and Futuna Is.") ~ "Wallis and Futuna Islands",
+                             Country %in% c("Iran (Islamic Republic of)", "Iran (Islamic Rep. of)") ~ "Iran",
+                             Country %in% c("Cote d'Ivoire", "C魌e d'Ivoire", "C么te d'Ivoire" ) ~ "Ivory Coast",
+                              
+                             
                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
@@ -5789,12 +5797,15 @@ agglivestock <-
   map_if(is.factor, as.character) %>% 
   as_data_frame() %>% 
    mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
-                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
-                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
-                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
-                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
-                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
-                             T ~ Country))
+                              Country %in% c("Wallis and Futuna Islands", "Wallis and Futuna Is.") ~ "Wallis and Futuna Islands",
+                              Country %in% c("Iran (Islamic Republic of)", "Iran (Islamic Rep. of)") ~ "Iran",
+                              Country %in% c("Cote d'Ivoire", "C魌e d'Ivoire", "C么te d'Ivoire" ) ~ "Ivory Coast",
+                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                              Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                              Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                              T ~ Country))
 
 
 
@@ -5803,6 +5814,10 @@ aggfisheries <-
   map_if(is.factor, as.character) %>% 
   as_data_frame() %>% 
   mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Korea, Republic of", "Republic of Korea") ~ "Republic of Korea",
+                             Country %in% c("Wallis and Futuna Islands", "Wallis and Futuna Is.") ~ "Wallis and Futuna Islands",
+                             Country %in% c("Iran (Islamic Republic of)", "Iran (Islamic Rep. of)") ~ "Iran",
+                             Country %in% c("Cote d'Ivoire", "C魌e d'Ivoire", "C么te d'Ivoire" ) ~ "Ivory Coast",
                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
@@ -5817,6 +5832,10 @@ aggaqua <-
   map_if(is.factor, as.character) %>% 
   as_data_frame() %>% 
   mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Korea, Republic of", "Republic of Korea") ~ "Republic of Korea",
+                             Country %in% c("Wallis and Futuna Islands", "Wallis and Futuna Is.") ~ "Wallis and Futuna Islands",
+                             Country %in% c("Iran (Islamic Republic of)", "Iran (Islamic Rep. of)") ~ "Iran",
+                             Country %in% c("Cote d'Ivoire", "C魌e d'Ivoire", "C么te d'Ivoire" ) ~ "Ivory Coast",
                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
@@ -5830,7 +5849,11 @@ shockdrivers <-
 shockdrivers %>% 
   rename(Code = Codes) %>% 
   mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Korea, Republic of", "Republic of Korea") ~ "Republic of Korea",
                              Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Wallis and Futuna Islands", "Wallis and Futuna Is.") ~ "Wallis and Futuna Islands",
+                             Country %in% c("Iran (Islamic Republic of)", "Iran (Islamic Rep. of)") ~ "Iran",
+                             Country %in% c("Cote d'Ivoire", "C魌e d'Ivoire", "C么te d'Ivoire" ) ~ "Ivory Coast",
                              Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
                              Country %in% c("Fiji, Republic of" ) ~ "Fiji",
                              Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
@@ -6007,6 +6030,14 @@ join_df <- function(df1, df2){
 }
 
 
+plus_one_crops <- function(df){
+    Country_local <- df$Country
+    Year_local <- df$Year+1
+    plus_one <- unnested_crops$diff[unnested_crops$Country==Country_local & unnested_crops$Year==Year_local]
+    return(plus_one)
+  }
+
+
 
 nested_production <- 
   normalised_total %>% 
@@ -6079,31 +6110,163 @@ unnested_aquaculture <-
   select( Code, Year, SubRegion, diff, detrended, occurence)
 
 
-
+#join crop shocks to normalised production
 
 crop_shocks <- 
   shockdrivers %>% 
   filter(Sector=="Crops") %>% 
   left_join(., unnested_crops, by=c("Code", "Year")) %>% 
   select(Sector, Country, Year, Region, SubRegion, Code, AbsMagnitude, Recovery2, Category, diff) %>% 
-  rename(Crop_change = diff)
+  rename(Crop_change = diff) %>% 
+  left_join(., unnested_livestock, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, diff) %>% 
+  rename(LS_change =diff) %>% 
+  left_join(., unnested_fisheries, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, diff) %>% 
+  rename(Fish_change = diff) %>% 
+  left_join(., unnested_aquaculture, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, Fish_change, diff) %>% 
+  rename(Aqua_change = diff) %>% 
+  mutate(crop_response = case_when(Crop_change>=0.5 ~ "Increase",
+                                   Crop_change<= -0.5 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(LS_response = case_when(LS_change>=0.5 ~ "Increase",
+                                 LS_change<= -0.5 ~ "Decrease",
+                                 T ~ "No change")) %>% 
+  mutate(fish_response = case_when(Fish_change>=0.5 ~ "Increase",
+                                   Fish_change<= -0.5 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(aqua_response = case_when(Aqua_change>=0.5 ~ "Increase",
+                                   Aqua_change<= -0.5 ~ "Decrease",
+                                   T ~ "No change"))
+         
+
+# rows <-  
+#   split(crop_shocks, seq(nrow(crop_shocks)))
+# 
+# crop_prod_plus1 <- lapply(rows, function(target_row){
+#   Code_local <- target_row$Code
+#   Year_local <-  target_row$Year +1
+#   Crop_changeplus1 <- unnested_crops$diff[unnested_crops$Code==Code_local & unnested_crops$Year==Year_local]
+#   LS_changeplus1 <- unnested_livestock$diff[unnested_livestock$Code==Code_local & unnested_livestock$Year==Year_local]
+#   Fish_changeplus1 <- unnested_fisheries$diff[unnested_fisheries$Code==Code_local & unnested_fisheries$Year==Year_local]
+#   Aqua_changeplus1 <- unnested_aquaculture$diff[unnested_aquaculture$Code==Code_local & unnested_aquaculture$Year==Year_local]
+#   return(Fish_changeplus1)
+# })
+# 
+# 
+# crop_prod_plus1[[31]]
+# crop_prod_plus1[[34]]
+
+
+
+#join livestock shocks to normalised production 
+  
 
 livestock_shocks <- 
   shockdrivers %>% 
   filter(Sector=="Livestock") %>% 
-  left_join(., unnested_livestock, by=c("Code", "Year"))
+  left_join(., unnested_crops, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion, Code, AbsMagnitude, Recovery2, Category, diff) %>% 
+  rename(Crop_change = diff) %>% 
+  left_join(., unnested_livestock, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, diff) %>% 
+  rename(LS_change =diff) %>% 
+  left_join(., unnested_fisheries, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, diff) %>% 
+  rename(Fish_change = diff) %>% 
+  left_join(., unnested_aquaculture, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, Fish_change, diff) %>% 
+  rename(Aqua_change = diff) %>% 
+  mutate(crop_response = case_when(Crop_change>=1 ~ "Increase",
+                                   Crop_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(LS_response = case_when(LS_change>=1 ~ "Increase",
+                                 LS_change<= -1 ~ "Decrease",
+                                 T ~ "No change")) %>% 
+  mutate(fish_response = case_when(Fish_change>=1 ~ "Increase",
+                                   Fish_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(aqua_response = case_when(Aqua_change>=1 ~ "Increase",
+                                   Aqua_change<= -1 ~ "Decrease",
+                                   T ~ "No change"))
+
+
+# rows <-  
+#   split(livestock_shocks, seq(nrow(livestock_shocks)))
+# 
+# 
+# 
+# 
+
+
+
+
+#join fisheires shocks to normalised production
 
 fisheries_shocks <- 
   shockdrivers %>% 
   filter(Sector=="Fisheries") %>% 
-  left_join(., unnested_fisheries, by=c("Code", "Year"))
+  left_join(., unnested_crops, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion, Code, AbsMagnitude, Recovery2, Category, diff) %>% 
+  rename(Crop_change = diff) %>% 
+  left_join(., unnested_livestock, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, diff) %>% 
+  rename(LS_change =diff) %>% 
+  left_join(., unnested_fisheries, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, diff) %>% 
+  rename(Fish_change = diff) %>% 
+  left_join(., unnested_aquaculture, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, Fish_change, diff) %>% 
+  rename(Aqua_change = diff) %>% 
+  mutate(crop_response = case_when(Crop_change>=1 ~ "Increase",
+                                   Crop_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(LS_response = case_when(LS_change>=1 ~ "Increase",
+                                 LS_change<= -1 ~ "Decrease",
+                                 T ~ "No change")) %>% 
+  mutate(fish_response = case_when(Fish_change>=1 ~ "Increase",
+                                   Fish_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(aqua_response = case_when(Aqua_change>=1 ~ "Increase",
+                                   Aqua_change<= -1 ~ "Decrease",
+                                   T ~ "No change"))
 
 aquaculture_shocks <- 
   shockdrivers %>% 
   filter(Sector=="Aquaculture") %>% 
-  left_join(., unnested_aquaculture, by=c("Code", "Year"))
+  left_join(., unnested_crops, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion, Code, AbsMagnitude, Recovery2, Category, diff) %>% 
+  rename(Crop_change = diff) %>% 
+  left_join(., unnested_livestock, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, diff) %>% 
+  rename(LS_change =diff) %>% 
+  left_join(., unnested_fisheries, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, diff) %>% 
+  rename(Fish_change = diff) %>% 
+  left_join(., unnested_aquaculture, by=c("Code", "Year")) %>% 
+  select(Sector, Country, Year, Region, SubRegion.x, Code, AbsMagnitude, Recovery2, Category, Crop_change, LS_change, Fish_change, diff) %>% 
+  rename(Aqua_change = diff) %>% 
+  mutate(crop_response = case_when(Crop_change>=1 ~ "Increase",
+                                   Crop_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(LS_response = case_when(LS_change>=1 ~ "Increase",
+                                 LS_change<= -1 ~ "Decrease",
+                                 T ~ "No change")) %>% 
+  mutate(fish_response = case_when(Fish_change>=1 ~ "Increase",
+                                   Fish_change<= -1 ~ "Decrease",
+                                   T ~ "No change")) %>% 
+  mutate(aqua_response = case_when(Aqua_change>=1 ~ "Increase",
+                                   Aqua_change<= -1 ~ "Decrease",
+                                   T ~ "No change"))
 
 
+mean(crop_shocks$LS_change[!is.na(crop_shocks$LS_change)])
+sd(crop_shocks$LS_change[!is.na(crop_shocks$LS_change)])
+mean(crop_shocks$Fish_change[!is.na(crop_shocks$Fish_change)])
+sd(crop_shocks$Fish_change[!is.na(crop_shocks$Fish_change)])
+mean(crop_shocks$Aqua_change[!is.na(crop_shocks$Aqua_change)])
+sd(crop_shocks$Aqua_change[!is.na(crop_shocks$Aqua_change)])
 
 ```
 
@@ -6834,14 +6997,15 @@ mfish<-ggplot(data=bbox_df, aes(long,lat, group=group)) +geom_polygon(fill="alic
 # + 
 #   guides(fill= guide_colorbar(ticks = F,  barwidth = unit(5, "cm"), barheight = unit(2, "mm"), title.hjust = 0, title.position = "top"))
 
-ratescombined<-ggarrange(mcrops, mLs, mfish, mAqua, ncol = 2, nrow = 2, labels = c("a", "b", "c", "d"), legend = "none")
-
+ratescombined<-ggarrange(mcrops, mLs, mfish, mAqua, ncol = 1, nrow = 4, labels = c("a", "c", "e", "g"), legend = "none", font.label = list(size=12)) # pair this with temporal trends
+ggsave(filename = "Shock ratesmap column.tiff", device = "tiff", dpi=600, width=9, height = 20, units = "cm")
 
 #ratescol<-ggarrange(mcrops, mLs, mfish, mAqua, ncol=1, nrow=4, labels=c("a", "c", "e", "g"), legend = "none")
 
 ratelegend<-get_legend(mcrops)
 
-ratescombined2<-ggarrange(ratescombined, ratelegend, nrow=2, ncol=1, heights = c(1,0.1))
+ratescombined2<-ggarrange(ratescombined, ratelegend , nrow=2, ncol=1, heights = c(1,0.1),font.label = list(size=12))
+ggsave(filename = "Shock ratesmap column2.tiff", device = "tiff", dpi=600, width=9, height = 20, units = "cm")
 
 ggsave(filename = "Shock rates only map.tiff", device = "tiff", dpi=600, width=18.3, height = 12.5, units = "cm")
 
@@ -6888,15 +7052,18 @@ Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(st
         plot.margin = unit(c(t=0,r=0,b=0,l=0), "cm"))+
   scale_fill_brewer(palette = "Spectral")+
   scale_y_continuous(limits = c(0, 1.06))+
-  labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0, ncol = 1))
+  labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0, ncol = 1))+
+  annotation_custom(cropimg, xmin = 0.5, xmax = 1.5, ymin = 1.009, ymax=1.1)+
+  annotation_custom(cowimg, xmin = 1.5, xmax = 2.5, ymin = 1.009, ymax=1.1)+
+  annotation_custom(fishingimg, xmin = 2.5, xmax = 3.5, ymin = 0.93, ymax=1.12)+
+  annotation_custom(aquaimg, xmin = 3.5, xmax = 4.5, ymin = 1.009, ymax=1.1)
 
 
 noleg<-ggarrange(Causes, nrow = 1, ncol = 1, legend = "none")
 
-ggarrange(noleg, get_legend(Causes), nrow=2, ncol=1, heights = c(0.9, 0.4))
-
-ggsave(filename="Drivers only.tiff", device="tiff", dpi=600, width=8.9, height=14, units = "cm")
-ggsave(filename="Drivers only.pdf", device= pdf, dpi=600, width=8.9, height=14, units = "cm")
+ggarrange(noleg, get_legend(Causes), nrow=2, ncol=1, heights = c(0.9, 0.4))+
+ggsave("Drivers only.tiff", device="tiff", dpi=600, width=8.9, height=14, units = "cm")+
+ggsave("Drivers only.pdf", device= "pdf", dpi=600, width=8.9, height=14, units = "cm")
 
 
 
@@ -7503,12 +7670,12 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
         panel.grid = element_blank(),
-        plot.margin = unit(c(0,0.2,0,0), "cm"),
+        plot.margin = unit(c(0.5,0.2,0.5,0), "cm"),
         axis.title.x = element_blank())+
   scale_y_continuous(limits = c(0,0.07))+
   scale_x_continuous(limits = c(1964,2013))+
   labs(y=bquote(Shock~freq.))+
-    annotation_custom(cropimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
+    annotation_custom(cropimg, xmin = 1964, xmax=1974, ymin = 0.045, ymax=0.065))
 
 #Crop shocks by driver over time
 driversandtime<- data.frame(table(cropdrivers$Year, cropdrivers$Category))
@@ -7699,10 +7866,10 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
         panel.grid = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
-        plot.margin = unit(c(0,0,0,0), "cm"),
+        plot.margin = unit(c(0.5,0.2,0.5,0), "cm"),
         axis.title.x = element_blank())+
   labs(y=bquote(Shock~freq.))+
-    annotation_custom(cowimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
+    annotation_custom(cowimg, xmin = 1964, xmax=1974, ymin = 0.045, ymax=0.065))
 
 
 #Livestock shocks by driver over time
@@ -7898,11 +8065,11 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
   theme(panel.background = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
-        plot.margin = unit(c(0,0,0,0), "cm"),
+        plot.margin = unit(c(0.5,0.2,0.5,0), "cm"),
         panel.grid = element_blank(),
         axis.title.x = element_blank())+
   labs(y=bquote(Shock~freq.))+
-  annotation_custom(fishingimg, xmin = 1961, xmax=1978, ymin = 0.025, ymax=0.07))
+  annotation_custom(fishingimg, xmin = 1961, xmax=1978, ymin = 0.035, ymax=0.07))
 
 
 
@@ -8100,11 +8267,11 @@ av.shocks$actual.decadal[av.shocks$decade=="2010s"]<-NA
   theme(panel.background = element_blank(),
         axis.text = element_text(size=8),
         axis.title = element_text(size=8),
-        axis.title.x = element_blank(),
-        plot.margin = unit(c(0,0.2,0,0), "cm"),
+        axis.title.x = element_text(size=12, face="bold", margin = margin(t=25)),
+        plot.margin = unit(c(0.5,0.2,0.5,0), "cm"),
         panel.grid = element_blank())+
   labs(y=bquote(Shock~freq.))+
-    annotation_custom(aquaimg, xmin = 1964, xmax=1974, ymin = 0.035, ymax=0.065))
+    annotation_custom(aquaimg, xmin = 1964, xmax=1974, ymin = 0.045, ymax=0.065))
 
 
 
@@ -8201,6 +8368,15 @@ driversandtime$Index[driversandtime$Decade=="2010s"]<-NA
 
 
 #Figure 1 
+
+time_rates <- ggarrange(p1,p3,p5,p7, labels = c("b", "d", "f", "h"), nrow = 4, ncol=1, legend = "none", heights=c(1,1,1,1.35), font.label = list(size=12))
+ggsave(filename = "Shock rates over time column.tiff", device = "tiff", dpi=600, width = 9, height=20, units = "cm")
+
+
+ggarrange(ratescombined2, time_rates, nrow = 1, ncol=2)+
+  ggsave("shocks rates spatial temporal.tiff", device = "tiff", dpi=600, width = 18.3, height=20, units="cm")+
+  ggsave("shocks rates spatial temporal.pdf", device = "pdf", dpi=600, width = 18.3, height=20, units="cm")
+
 
 fig1<-ggarrange(p1, p3, p2,p4, p5,p7, p6,p8, labels=c("a","c","b","d","e", "g", "f", "h"), ncol=2, nrow=4, legend = "none", align = "hv" , font.label = list(size=12))
 
