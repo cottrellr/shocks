@@ -8,7 +8,7 @@ output: html_document
 ###LIBRARIES
 
 ```{r}
-
+library(randomForest)
 library(plyr) # manipulation of data formatting
 library(dplyr) # maniuplation of data formatting
 library(sp) #spatial tool
@@ -1186,592 +1186,203 @@ names(AquacultureN)[names(AquacultureN)=="years"] <- "Year"
 
 ```{r}
 
+#subregions
+
+N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of", "Zanzibar")
+M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena", "Congo, Dem. Rep. of the", "Democratic Republic of the Congo" )
+S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
+W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
+
+#Asia
+
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep", "Northern Mariana Is.")
+SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
+S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
+W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
+
+#Latin America/Caribbean
+
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Aruba", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
+
+C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of", "Falkland Islands (Malvinas)")
+
+#Oceania
+Aus_NZ <- c("Australia", "New Zealand")
+Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Fiji, Republic of" )
+Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
+Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands", "Pitcairn Islands")
+
+#North AMerica
+N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
+
+#Europe
+E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine", "Former USSR")
+N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands", "Isle of Man" )
+S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR", "San Marino")
+W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland" )
+
+
+N_Africa_codes <- countrycode(N_Africa, origin = "country.name", destination="iso3c", warn=T)
+E_Africa_codes <- countrycode(E_Africa, origin = "country.name", destination="iso3c", warn=T )
+M_Africa_codes <-  countrycode(M_Africa, origin = "country.name", destination="iso3c", warn=T) 
+S_Africa_codes <- countrycode(S_Africa, origin = "country.name", destination="iso3c", warn=T)
+W_Africa_codes <- countrycode(W_Africa, origin = "country.name", destination="iso3c", warn=T)
+
+E_Asia_codes <-  countrycode(E_Asia, origin = "country.name", destination="iso3c", warn=T)
+SE_Asia_codes <- countrycode(SE_Asia, origin = "country.name", destination="iso3c", warn=T)
+S_Asia_codes <- countrycode(S_Asia, origin = "country.name", destination="iso3c", warn=T)
+W_Asia_codes <-  countrycode(W_Asia, origin = "country.name", destination="iso3c", warn=T)
+
+Caribbean_codes <- countrycode(Caribbean, origin = "country.name", destination="iso3c", warn=T)
+Caribbean_codes[22] <- "VIN"
+C_America_codes <- countrycode(C_America, origin = "country.name", destination="iso3c", warn=T)
+S_America_codes <- countrycode(S_America, origin = "country.name", destination="iso3c", warn=T)
+N_America_codes <- countrycode(N_America, origin = "country.name", destination="iso3c", warn=T)
+
+
+Aus_NZ_codes <- countrycode(Aus_NZ, origin = "country.name", destination="iso3c", warn=T)
+Melanesia_codes <- countrycode(Melanesia, origin = "country.name", destination="iso3c", warn=T) 
+Micronesia_codes <- countrycode(Micronesia, origin = "country.name", destination="iso3c", warn=T)
+Polynesia_codes <- countrycode(Polynesia, origin = "country.name", destination="iso3c", warn=T) 
+
+E_Europe_codes <- countrycode(E_Europe, origin = "country.name", destination="iso3c", warn=T)
+N_Europe_codes <-  countrycode(N_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes <- countrycode(S_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes[9] <- "BIH"
+W_Europe_codes <- countrycode(W_Europe, origin = "country.name", destination="iso3c", warn=T)
+
+
+
 #Main continents for crops
-aggcrops$Continent <- countrycode(aggcrops$Country, origin = "country.name", destination = "continent", warn = T)
-
-
-#World bank regions for crops
-
-#SubSaharan Africa
-aggcrops$Continent[aggcrops$Continent=="Africa"]<-"SSA"
-
-#MENA
-aggcrops$Continent[aggcrops$Country=="Algeria"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Bahrain"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Djibouti"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Egypt"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Iraq"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Iran (Islamic Republic of)"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Israel"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Jordan"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Kuwait"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Lebanon"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Libya"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Malta"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Morocco"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Oman"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Qatar"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Syrian Arab Republic"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Saudi Arabia"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Tunisia"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="United Arab Emirates"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="West Bank and Gaza"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Yemen"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Former Sudan"]<-"MENA"
-aggcrops$Continent[aggcrops$Country=="Former Ethiopia"]<-"MENA"
-
-#Caribbean and Latin America
-aggcrops$Continent[aggcrops$Continent=="Americas"]<-"LACa"
-
-#North America
-aggcrops$Continent[aggcrops$Country=="United States of America"]<-"North America"
-aggcrops$Continent[aggcrops$Country=="Canada"]<-"North America"
-aggcrops$Continent[aggcrops$Country=="Bermuda"]<-"North America"
-
-
-#Europe and Central Asia
-
-aggcrops$Continent[aggcrops$Country=="Cyprus"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Azerbaijan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Greenland"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Kazakhstan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Kyrgyzstan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Tajikistan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Turkmenistan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Uzbekistan"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Turkey"]<-"EuCA"
-aggcrops$Continent[aggcrops$Continent=="Europe"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Former USSR"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Former Czechoslovakia"]<-"EuCA"
-aggcrops$Continent[aggcrops$Country=="Former Yugoslav SFR"]<-"EuCA"
-
-
-
-#South Asia
-aggcrops$Continent[aggcrops$Country=="Afghanistan"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Bangladesh"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Bhutan"]<-"South Asia"
-
-aggcrops$Continent[aggcrops$Country=="India"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Maldives"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Nepal"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Pakistan"]<-"South Asia"
-aggcrops$Continent[aggcrops$Country=="Sri Lanka"]<-"South Asia"
-
-#East Asia 
-aggcrops$Continent[aggcrops$Continent=="Asia"]<-"East Asia"
-#aggcrops$Continent[aggcrops$Continent=="Oceania"]<-"East Asia and Pacific"
-
-
-#Main continents for livestock
-agglivestock$Continent <- countrycode(agglivestock$Country, origin = "country.name", destination = "continent", warn = T)
-
-#World bank regions for livestock
-
-#SubSaharan Africa
-agglivestock$Continent[agglivestock$Continent=="Africa"]<-"SSA"
-
-#MENA
-agglivestock$Continent[agglivestock$Country=="Algeria"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Bahrain"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Djibouti"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Egypt"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Iran (Islamic Republic of)"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Iraq"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Israel"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Jordan"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Kuwait"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Lebanon"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Libya"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Malta"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Morocco"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Oman"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Qatar"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Syrian Arab Republic"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Saudi Arabia"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Tunisia"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="United Arab Emirates"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="West Bank and Gaza"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Yemen"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Former Sudan"]<-"MENA"
-agglivestock$Continent[agglivestock$Country=="Former Ethiopia"]<-"MENA"
-
-#Caribbean and Latin America
-agglivestock$Continent[agglivestock$Continent=="Americas"]<-"LACa"
-
-#North America
-agglivestock$Continent[agglivestock$Country=="United States of America"]<-"North America"
-agglivestock$Continent[agglivestock$Country=="Canada"]<-"North America"
-agglivestock$Continent[agglivestock$Country=="Bermuda"]<-"North America"
-agglivestock$Continent[agglivestock$Country=="Greenland"]<-"North America"
-
-
-#Europe and Central Asia
-agglivestock$Continent[agglivestock$Country=="Azerbaijan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Cyprus"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Kazakhstan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Kyrgyzstan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Tajikistan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Turkmenistan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Turkey"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Uzbekistan"]<-"EuCA"
-agglivestock$Continent[agglivestock$Continent=="Europe"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Former USSR"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Former Czechoslovakia"]<-"EuCA"
-agglivestock$Continent[agglivestock$Country=="Former Yugoslav SFR"]<-"EuCA"
-
-#South Asia
-agglivestock$Continent[agglivestock$Country=="Afghanistan"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Bangladesh"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Bhutan"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="India"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Maldives"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Nepal"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Pakistan"]<-"South Asia"
-agglivestock$Continent[agglivestock$Country=="Sri Lanka"]<-"South Asia"
-
-#East Asia Pacific
-agglivestock$Continent[agglivestock$Continent=="Asia"]<-"East Asia"
-#agglivestock$Continent[agglivestock$Continent=="Oceania"]<-"East Asia and Pacific"
-
-unique(agglivestock$Country[agglivestock$Continent=="East Asia"])
-
-#Main continents -total fisheries
-
-aggfisheries$Continent <- countrycode(aggfisheries$Country, origin = "country.name", destination = "continent", warn = T)
-aggfisheries$Continent[aggfisheries$Country=="British Indian Ocean Territory"]<-"Asia"
-
-
-#SubSaharan Africa
-aggfisheries$Continent[aggfisheries$Continent=="Africa"]<-"SSA"
-
-#MENA
-aggfisheries$Continent[aggfisheries$Country=="Algeria"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Bahrain"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Djibouti"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Egypt"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Iran (Islamic Rep. of)"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Iraq"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Israel"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Jordan"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Kuwait"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Lebanon"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Libya"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Malta"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Morocco"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Oman"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Qatar"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Syrian Arab Republic"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Saudi Arabia"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Tunisia"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="United Arab Emirates"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="West Bank and Gaza"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Yemen"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Former Sudan"]<-"MENA"
-aggfisheries$Continent[aggfisheries$Country=="Former Ethiopia"]<-"MENA"
-
-
-#Caribbean and Latin America
-aggfisheries$Continent[aggfisheries$Continent=="Americas"]<-"LACa"
-
-#North America
-aggfisheries$Continent[aggfisheries$Country=="United States of America"]<-"North America"
-aggfisheries$Continent[aggfisheries$Country=="Canada"]<-"North America"
-aggfisheries$Continent[aggfisheries$Country=="Bermuda"]<-"North America"
-aggfisheries$Continent[aggfisheries$Country=="Greenland"]<-"North America"
-
-
-#Europe and Central Asia
-aggfisheries$Continent[aggfisheries$Country=="Azerbaijan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Cyprus"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Kazakhstan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Kyrgyzstan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Tajikistan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Turkmenistan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Turkey"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Uzbekistan"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Continent=="Europe"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Former USSR"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Former Czechoslovakia"]<-"EuCA"
-aggfisheries$Continent[aggfisheries$Country=="Former Yugoslav SFR"]<-"EuCA"
-
-#South Asia
-aggfisheries$Continent[aggfisheries$Country=="Afghanistan"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Bangladesh"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Bhutan"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="India"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Maldives"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Nepal"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Pakistan"]<-"South Asia"
-aggfisheries$Continent[aggfisheries$Country=="Sri Lanka"]<-"South Asia"
-
-#East Asia Pacific
-aggfisheries$Continent[aggfisheries$Continent=="Asia"]<-"East Asia"
-#aggfisheries$Continent[aggfisheries$Continent=="Oceania"]<-"East Asia and Pacific"
-
-
-
-# #Main continents - inland fisheries
-# agginlandfisheries$Continent <- countrycode(agginlandfisheries$Country, origin = "country.name", destination = "continent", warn = T)
-# agginlandfisheries$Continent[agginlandaqua$Country=="British Indian Ocean Territory"]<-"Asia"
-# 
-# 
-# 
-# #SubSaharan Africa
-# agginlandfisheries$Continent[agginlandfisheries$Continent=="Africa"]<-"SSA"
-# 
-# #MENA
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Algeria"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Bahrain"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Djibouti"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Eygpt"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Iran"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Iraq"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Israel"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Jordan"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Kuwait"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Lebanon"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Libya"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Malta"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Morocco"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Oman"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Qatar"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Syria"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Tunisia"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="United Arab Emirates"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="West Bank and Gaza"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Yemen"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Ethiopia"]<-"MENA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Sudan"]<-"MENA"
-# 
-# #Caribbean and Latin America
-# agginlandfisheries$Continent[agginlandfisheries$Continent=="Americas"]<-"LACa"
-# 
-# #North America
-# agginlandfisheries$Continent[agginlandfisheries$Country=="United States of America"]<-"North America"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Canada"]<-"North America"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Bermuda"]<-"North America"
-# 
-# 
-# #Europe and Central Asia
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Azerbaijan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Greenland"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Kazakhstan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Kyrgyzstan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Tajikistan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Turkmenistan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Uzbekistan"]<-"EuCA"
-# agginlandfisheries$Continent[agginlandfisheries$Continent=="Europe"]<-"EuCA"
-# 
-# #South Asia
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Afghanistan"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Bangladesh"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Bhutan"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="India"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Maldives"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Nepal"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Pakistan"]<-"South Asia"
-# agginlandfisheries$Continent[agginlandfisheries$Country=="Sri Lanka"]<-"South Asia"
-# 
-# #East Asia Pacific
-# agginlandfisheries$Continent[agginlandfisheries$Continent=="Asia"]<-"East Asia and Pacific"
-# agginlandfisheries$Continent[agginlandfisheries$Continent=="Oceania"]<-"East Asia and Pacific"
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# #Main continents - marine fisheries
-# aggmarinefisheries$Continent <- countrycode(aggmarinefisheries$Country, origin = "country.name", destination = "continent", warn = T)
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="British Indian Ocean Territory"]<-"Asia"
-# 
-# 
-# #SubSaharan Africa
-# aggmarinefisheries$Continent[aggmarinefisheries$Continent=="Africa"]<-"SSA"
-# 
-# #MENA
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Algeria"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Bahrain"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Djibouti"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Eygpt"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Iran"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Iraq"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Israel"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Jordan"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Kuwait"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Lebanon"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Libya"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Malta"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Morocco"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Oman"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Qatar"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Syria"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Tunisia"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="United Arab Emirates"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="West Bank and Gaza"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Yemen"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Ethiopia"]<-"MENA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Sudan"]<-"MENA"
-# 
-# #Caribbean and Latin America
-# aggmarinefisheries$Continent[aggmarinefisheries$Continent=="Americas"]<-"LACa"
-# 
-# #North America
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="United States of America"]<-"North America"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Canada"]<-"North America"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Bermuda"]<-"North America"
-# 
-# 
-# #Europe and Central Asia
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Azerbaijan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Greenland"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Kazakhstan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Kyrgyzstan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Tajikistan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Turkmenistan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Uzbekistan"]<-"EuCA"
-# aggmarinefisheries$Continent[aggmarinefisheries$Continent=="Europe"]<-"EuCA"
-# 
-# #South Asia
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Afghanistan"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Bangladesh"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Bhutan"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="India"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Maldives"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Nepal"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Pakistan"]<-"South Asia"
-# aggmarinefisheries$Continent[aggmarinefisheries$Country=="Sri Lanka"]<-"South Asia"
-# 
-# #East Asia Pacific
-# aggmarinefisheries$Continent[aggmarinefisheries$Continent=="Asia"]<-"East Asia and Pacific"
-# aggmarinefisheries$Continent[aggmarinefisheries$Continent=="Oceania"]<-"East Asia and Pacific"
-
-
-#main continents - total aquaculture
-aggaqua$Continent <- countrycode(aggaqua$Country, origin = "country.name", destination = "continent", warn = T)
-aggaqua$Continent[aggaqua$Country=="RÃ©union"]<-"Africa"
-
-
-#SubSaharan Africa
-aggaqua$Continent[aggaqua$Continent=="Africa"]<-"SSA"
-aggaqua$Continent[aggaqua$Country=="Zanzibar"]<-"SSA"
-
-#MENA
-aggaqua$Continent[aggaqua$Country=="Algeria"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Bahrain"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Djibouti"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Egypt"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Iran (Islamic Rep. of)"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Iraq"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Israel"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Jordan"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Kuwait"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Lebanon"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Libya"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Malta"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Morocco"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Oman"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Qatar"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Syrian Arab Republic"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Saudi Arabia"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Tunisia"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="United Arab Emirates"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="West Bank and Gaza"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Yemen"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Former Ethiopia"]<-"MENA"
-aggaqua$Continent[aggaqua$Country=="Former Sudan"]<-"MENA"
-
-#Caribbean and Latin America
-aggaqua$Continent[aggaqua$Continent=="Americas"]<-"LACa"
-
-#North America
-aggaqua$Continent[aggaqua$Country=="United States of America"]<-"North America"
-aggaqua$Continent[aggaqua$Country=="Canada"]<-"North America"
-aggaqua$Continent[aggaqua$Country=="Bermuda"]<-"North America"
-aggaqua$Continent[aggaqua$Country=="Greenland"]<-"North America"
-aggaqua$Continent[aggaqua$Country=="St. Pierre and Miquelon"]<-"North America"
-
-
-
-#Europe and Central Asia
-aggaqua$Continent[aggaqua$Country=="Azerbaijan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Cyprus"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Kazakhstan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Kyrgyzstan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Tajikistan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Turkmenistan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Turkey"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Uzbekistan"]<-"EuCA"
-aggaqua$Continent[aggaqua$Continent=="Europe"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Former USSR"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Former Czechoslovakia"]<-"EuCA"
-aggaqua$Continent[aggaqua$Country=="Former Yugoslav SFR"]<-"EuCA"
-
-#South Asia
-aggaqua$Continent[aggaqua$Country=="Afghanistan"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Bangladesh"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Bhutan"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="India"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Maldives"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Nepal"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Pakistan"]<-"South Asia"
-aggaqua$Continent[aggaqua$Country=="Sri Lanka"]<-"South Asia"
-
-#East Asia Pacific
-aggaqua$Continent[aggaqua$Continent=="Asia"]<-"East Asia"
-#aggaqua$Continent[aggaqua$Continent=="Oceania"]<-"East Asia and Pacific"
-
-
-
-unique(aggaqua$Country[aggaqua$Continent=="North America"])
-
-
-
-
-
-
-
-
-# #Main continents - inland aquaculture
-# agginlandaqua$Continent <- countrycode(agginlandaqua$Country, origin = "country.name", destination = "continent", warn = T)
-# agginlandaqua$Continent[agginlandaqua$Country=="RÃ©union"]<-"Africa"
-# 
-# 
-# #SubSaharan Africa
-# agginlandaqua$Continent[agginlandaqua$Continent=="Africa"]<-"SSA"
-# 
-# #MENA
-# agginlandaqua$Continent[agginlandaqua$Country=="Algeria"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Bahrain"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Djibouti"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Eygpt"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Iran"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Iraq"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Israel"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Jordan"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Kuwait"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Lebanon"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Libya"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Malta"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Morocco"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Oman"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Qatar"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Syria"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Tunisia"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="United Arab Emirates"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="West Bank and Gaza"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Yemen"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Ethiopia"]<-"MENA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Sudan"]<-"MENA"
-# 
-# #Caribbean and Latin America
-# agginlandaqua$Continent[agginlandaqua$Continent=="Americas"]<-"LACa"
-# 
-# #North America
-# agginlandaqua$Continent[agginlandaqua$Country=="United States of America"]<-"North America"
-# agginlandaqua$Continent[agginlandaqua$Country=="Canada"]<-"North America"
-# agginlandaqua$Continent[agginlandaqua$Country=="Bermuda"]<-"North America"
-# 
-# 
-# #Europe and Central Asia
-# agginlandaqua$Continent[agginlandaqua$Country=="Azerbaijan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Greenland"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Kazakhstan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Kyrgyzstan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Tajikistan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Turkmenistan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Country=="Uzbekistan"]<-"EuCA"
-# agginlandaqua$Continent[agginlandaqua$Continent=="Europe"]<-"EuCA"
-# 
-# #South Asia
-# agginlandaqua$Continent[agginlandaqua$Country=="Afghanistan"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Bangladesh"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Bhutan"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="India"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Maldives"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Nepal"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Pakistan"]<-"South Asia"
-# agginlandaqua$Continent[agginlandaqua$Country=="Sri Lanka"]<-"South Asia"
-# 
-# #East Asia Pacific
-# agginlandaqua$Continent[agginlandaqua$Continent=="Asia"]<-"East Asia and Pacific"
-# agginlandaqua$Continent[agginlandaqua$Continent=="Oceania"]<-"East Asia and Pacific"
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# #Main continents - marine aquaculture
-# aggmarineaqua$Continent <- countrycode(aggmarineaqua$Country, origin = "country.name", destination = "continent", warn = T)
-# aggmarineaqua$Continent[aggmarineaqua$Country=="RÃ©union"]<-"Africa"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Zanzibar"]<-"Africa"
-# 
-# 
-# #SubSaharan Africa
-# aggmarineaqua$Continent[aggmarineaqua$Continent=="Africa"]<-"SSA"
-# 
-# #MENA
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Algeria"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Bahrain"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Djibouti"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Eygpt"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Iran"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Iraq"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Israel"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Jordan"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Kuwait"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Lebanon"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Libya"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Malta"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Morocco"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Oman"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Qatar"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Syria"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Tunisia"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="United Arab Emirates"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="West Bank and Gaza"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Yemen"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Ethiopia"]<-"MENA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Sudan"]<-"MENA"
-# 
-# #Caribbean and Latin America
-# aggmarineaqua$Continent[aggmarineaqua$Continent=="Americas"]<-"LACa"
-# 
-# #North America
-# aggmarineaqua$Continent[aggmarineaqua$Country=="United States of America"]<-"North America"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Canada"]<-"North America"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Bermuda"]<-"North America"
-# 
-# 
-# #Europe and Central Asia
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Azerbaijan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Greenland"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Kazakhstan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Kyrgyzstan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Tajikistan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Turkmenistan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Uzbekistan"]<-"EuCA"
-# aggmarineaqua$Continent[aggmarineaqua$Continent=="Europe"]<-"EuCA"
-# 
-# #South Asia
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Afghanistan"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Bangladesh"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Bhutan"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="India"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Maldives"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Nepal"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Pakistan"]<-"South Asia"
-# aggmarineaqua$Continent[aggmarineaqua$Country=="Sri Lanka"]<-"South Asia"
-# 
-# #East Asia Pacific
-# aggmarineaqua$Continent[aggmarineaqua$Continent=="Asia"]<-"East Asia and Pacific"
-# aggmarineaqua$Continent[aggmarineaqua$Continent=="Oceania"]<-"East Asia and Pacific"
+aggcrops <- aggcrops %>% 
+  mutate(Code = countrycode(Country, origin="country.name", destination= "iso3c", warn=T)) %>% 
+  mutate(Code = case_when(Country == "Former Yugoslav SFR" ~ "BIH",
+                          T ~ Code)) %>% 
+  mutate(Continent = case_when(Code %in% N_America_codes ~ "North America",
+                               Code %in% C_America_codes ~ "Central America",
+                               Code %in% Caribbean_codes ~ "Caribbean",
+                               Code %in% S_America_codes ~ "South America",
+                               Code %in% N_Europe_codes ~ "Northern Europe",
+                               Code %in% W_Europe_codes ~ "Western Europe",
+                               Code %in% S_Europe_codes ~ "Southern Europe",
+                               Code %in% E_Europe_codes ~ "Eastern Europe",
+                               Code %in% N_Africa_codes ~ "North Africa",
+                               Code %in% W_Africa_codes ~ "West Africa",
+                               Code %in% M_Africa_codes ~ "Central Africa",
+                               Code %in% S_Africa_codes ~ "Southern Africa",
+                               Code %in% E_Africa_codes ~ "East Africa",
+                               Code %in% W_Asia_codes ~ "Western Asia",
+                               Code %in% S_Asia_codes ~ "South Asia",
+                               Code %in% SE_Asia_codes ~ "SE Asia",
+                               Code %in% E_Asia_codes ~ "East Asia",
+                               Code %in% Aus_NZ_codes ~ "Australia/NZ",
+                               Code %in% Melanesia_codes ~ "Melanesia",
+                               Code %in% Micronesia_codes ~ "Micronesia",
+                               Code %in% Polynesia_codes ~ "Polynesia",
+                               Code == "TWN" ~ "East Asia",
+                               Code =="LIE" ~ "Western Europe",
+                               Code == "REU" ~ "East Africa",
+                               Code == "ESH" ~ "West Africa", 
+                               Country == "Former Yugoslav SFR" ~ "Southern Europe"))
+
+
+
+agglivestock <- agglivestock %>% 
+  mutate(Code = countrycode(Country, origin="country.name", destination= "iso3c", warn=T)) %>% 
+  mutate(Code = case_when(Country == "Former Yugoslav SFR" ~ "BIH",
+                          T ~ Code)) %>% 
+  mutate(Continent = case_when(Code %in% N_America_codes ~ "North America",
+                               Code %in% C_America_codes ~ "Central America",
+                               Code %in% Caribbean_codes ~ "Caribbean",
+                               Code %in% S_America_codes ~ "South America",
+                               Code %in% N_Europe_codes ~ "Northern Europe",
+                               Code %in% W_Europe_codes ~ "Western Europe",
+                               Code %in% S_Europe_codes ~ "Southern Europe",
+                               Code %in% E_Europe_codes ~ "Eastern Europe",
+                               Code %in% N_Africa_codes ~ "North Africa",
+                               Code %in% W_Africa_codes ~ "West Africa",
+                               Code %in% M_Africa_codes ~ "Central Africa",
+                               Code %in% S_Africa_codes ~ "Southern Africa",
+                               Code %in% E_Africa_codes ~ "East Africa",
+                               Code %in% W_Asia_codes ~ "Western Asia",
+                               Code %in% S_Asia_codes ~ "South Asia",
+                               Code %in% SE_Asia_codes ~ "SE Asia",
+                               Code %in% E_Asia_codes ~ "East Asia",
+                               Code %in% Aus_NZ_codes ~ "Australia/NZ",
+                               Code %in% Melanesia_codes ~ "Melanesia",
+                               Code %in% Micronesia_codes ~ "Micronesia",
+                               Code %in% Polynesia_codes ~ "Polynesia",
+                               Code == "TWN" ~ "East Asia",
+                               Code =="LIE" ~ "Western Europe",
+                               Code == "REU" ~ "East Africa",
+                               Code == "ESH" ~ "West Africa", 
+                               Country == "Former Yugoslav SFR" ~ "Southern Europe"))
+
+
+
+aggfisheries <- aggfisheries %>% 
+  mutate(Code = countrycode(Country, origin="country.name", destination= "iso3c", warn=T)) %>% 
+  mutate(Code = case_when(Country == "Former Yugoslav SFR" ~ "BIH",
+                          T ~ Code)) %>% 
+  mutate(Continent = case_when(Code %in% N_America_codes ~ "North America",
+                               Code %in% C_America_codes ~ "Central America",
+                               Code %in% Caribbean_codes ~ "Caribbean",
+                               Code %in% S_America_codes ~ "South America",
+                               Code %in% N_Europe_codes ~ "Northern Europe",
+                               Code %in% W_Europe_codes ~ "Western Europe",
+                               Code %in% S_Europe_codes ~ "Southern Europe",
+                               Code %in% E_Europe_codes ~ "Eastern Europe",
+                               Code %in% N_Africa_codes ~ "North Africa",
+                               Code %in% W_Africa_codes ~ "West Africa",
+                               Code %in% M_Africa_codes ~ "Central Africa",
+                               Code %in% S_Africa_codes ~ "Southern Africa",
+                               Code %in% E_Africa_codes ~ "East Africa",
+                               Code %in% W_Asia_codes ~ "Western Asia",
+                               Code %in% S_Asia_codes ~ "South Asia",
+                               Code %in% SE_Asia_codes ~ "SE Asia",
+                               Code %in% E_Asia_codes ~ "East Asia",
+                               Code %in% Aus_NZ_codes ~ "Australia/NZ",
+                               Code %in% Melanesia_codes ~ "Melanesia",
+                               Code %in% Micronesia_codes ~ "Micronesia",
+                               Code %in% Polynesia_codes ~ "Polynesia",
+                               Code == "TWN" ~ "East Asia",
+                               Code =="LIE" ~ "Western Europe",
+                               Code == "REU" ~ "East Africa",
+                               Code == "ESH" ~ "West Africa", 
+                               Country == "Former Yugoslav SFR" ~ "Southern Europe"))
+
+
+
+
+aggaqua <-  aggaqua %>% 
+  mutate(Continent = case_when(Codes %in% N_America_codes ~ "North America",
+                               Codes %in% C_America_codes ~ "Central America",
+                               Codes %in% Caribbean_codes ~ "Caribbean",
+                               Codes %in% S_America_codes ~ "South America",
+                               Codes %in% N_Europe_codes ~ "Northern Europe",
+                               Codes %in% W_Europe_codes ~ "Western Europe",
+                               Codes %in% S_Europe_codes ~ "Southern Europe",
+                               Codes %in% E_Europe_codes ~ "Eastern Europe",
+                               Codes %in% N_Africa_codes ~ "North Africa",
+                               Codes %in% W_Africa_codes ~ "West Africa",
+                               Codes %in% M_Africa_codes ~ "Central Africa",
+                               Codes %in% S_Africa_codes ~ "Southern Africa",
+                               Codes %in% E_Africa_codes ~ "East Africa",
+                               Codes %in% W_Asia_codes ~ "Western Asia",
+                               Codes %in% S_Asia_codes ~ "South Asia",
+                               Codes %in% SE_Asia_codes ~ "SE Asia",
+                               Codes %in% E_Asia_codes ~ "East Asia",
+                               Codes %in% Aus_NZ_codes ~ "Australia/NZ",
+                               Codes %in% Melanesia_codes ~ "Melanesia",
+                               Codes %in% Micronesia_codes ~ "Micronesia",
+                               Codes %in% Polynesia_codes ~ "Polynesia",
+                               Codes == "TWN" ~ "East Asia",
+                               Codes =="LIE" ~ "Western Europe",
+                               Codes == "REU" ~ "East Africa",
+                               Codes == "ESH" ~ "West Africa", 
+                               Country == "Former Yugoslav SFR" ~ "Southern Europe"))
 
 rm(marinefisheries, marineaqua, inlandaqua, inlandfisheries, agginlandaqua, agginlandaqua2, agginlandfisheries, agginlandfisheries2, aggmarineaqua, aggmarineaqua2, aggmarinefisheries, aggmarinefisheries2)
 
@@ -5523,6 +5134,109 @@ shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
 
 write.csv(shockdrivers, file = "Shocks and drivers tidy3.csv", row.names = F)
 
+
+N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of", "Zanzibar", "Réunion")
+M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena", "Congo, Dem. Rep. of the", "Democratic Republic of the Congo" )
+S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
+W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo", "Western Sahara")
+
+#Asia
+
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep", "Northern Mariana Is.", "China, Taiwan Province of")
+SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
+S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
+W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
+
+#Latin America/Caribbean
+
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Aruba", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
+
+C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of", "Falkland Islands (Malvinas)")
+
+#Oceania
+Aus_NZ <- c("Australia", "New Zealand")
+Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Fiji, Republic of" )
+Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
+Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands", "Pitcairn Islands")
+
+#North AMerica
+N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
+
+#Europe
+E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine", "Former USSR")
+N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands", "Isle of Man" )
+S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR", "San Marino")
+W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland", "Liechtenstein" )
+
+#sub region codes
+N_Africa_codes <- countrycode(N_Africa, origin = "country.name", destination="iso3c", warn=T)
+E_Africa_codes <- countrycode(E_Africa, origin = "country.name", destination="iso3c", warn=T )
+M_Africa_codes <-  countrycode(M_Africa, origin = "country.name", destination="iso3c", warn=T) 
+S_Africa_codes <- countrycode(S_Africa, origin = "country.name", destination="iso3c", warn=T)
+W_Africa_codes <- countrycode(W_Africa, origin = "country.name", destination="iso3c", warn=T)
+
+E_Asia_codes <-  countrycode(E_Asia, origin = "country.name", destination="iso3c", warn=T)
+SE_Asia_codes <- countrycode(SE_Asia, origin = "country.name", destination="iso3c", warn=T)
+S_Asia_codes <- countrycode(S_Asia, origin = "country.name", destination="iso3c", warn=T)
+W_Asia_codes <-  countrycode(W_Asia, origin = "country.name", destination="iso3c", warn=T)
+
+Caribbean_codes <- countrycode(Caribbean, origin = "country.name", destination="iso3c", warn=T)
+Caribbean_codes[is.na(Caribbean_codes)] <- "VIN"
+C_America_codes <- countrycode(C_America, origin = "country.name", destination="iso3c", warn=T)
+S_America_codes <- countrycode(S_America, origin = "country.name", destination="iso3c", warn=T)
+N_America_codes <- countrycode(N_America, origin = "country.name", destination="iso3c", warn=T)
+
+
+Aus_NZ_codes <- countrycode(Aus_NZ, origin = "country.name", destination="iso3c", warn=T)
+Melanesia_codes <- countrycode(Melanesia, origin = "country.name", destination="iso3c", warn=T) 
+Micronesia_codes <- countrycode(Micronesia, origin = "country.name", destination="iso3c", warn=T)
+Polynesia_codes <- countrycode(Polynesia, origin = "country.name", destination="iso3c", warn=T) 
+
+E_Europe_codes <- countrycode(E_Europe, origin = "country.name", destination="iso3c", warn=T)
+N_Europe_codes <-  countrycode(N_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes <- countrycode(S_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes[is.na(S_Europe_codes)] <- "BIH"
+W_Europe_codes <- countrycode(W_Europe, origin = "country.name", destination="iso3c", warn=T)
+
+
+
+shockdrivers <- 
+  fread("Shocks and drivers tidy3.csv", header=T) %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country)) %>% 
+  mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                               Country %in% M_Africa ~ "Central Africa",
+                               Country %in% S_Africa ~ "Southern Africa",
+                               Country %in% W_Africa ~ "West Africa",
+                               Country %in% E_Africa ~ "East Africa",
+                               #Country %in% Former_USSR ~ "Former USSR",
+                               Country %in% E_Asia ~ "East Asia",
+                               Country %in% SE_Asia ~ "SE Asia",
+                               Country %in% S_Asia ~ "South Asia",
+                               Country %in% W_Asia ~ "Western Asia",
+                               Country %in% Caribbean ~ "Caribbean",
+                               Country %in% C_America ~ "Central America",
+                               Country %in% S_America ~ "South America",
+                               Country %in% N_America ~ "North America",
+                               Country %in% Aus_NZ ~ "Australia/NZ",
+                               Country %in% Micronesia ~ "Micronesia",
+                               Country %in% Melanesia ~ "Melanesia",
+                               Country %in% Polynesia ~ "Polynesia",
+                               Country %in% N_Europe ~ "Northern Europe",
+                               Country %in% E_Europe ~ "Eastern Europe",
+                               Country %in% S_Europe ~ "Southern Europe",
+                               Country %in% W_Europe ~ "Western Europe"))
+
+
+
+
 shockcategories<-data.frame(table(shockdrivers$Category, shockdrivers$Sector))
 
 shockcategories$Total[shockcategories$Var2=="Aquaculture"]<- sum(shockcategories$Freq[shockcategories$Var2=="Aquaculture"])
@@ -5545,38 +5259,38 @@ shockdrivers <- fread("Shocks and drivers tidy3.csv", header=T)
 
 #Africa
 N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
-E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of")
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of", "Zanzibar")
 M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena", "Congo, Dem. Rep. of the", "Democratic Republic of the Congo" )
 S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
 W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo")
 
 #Asia
 
-E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep")
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep", "Northern Mariana Is.")
 SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
 S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
 W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
 
 #Latin America/Caribbean
 
-Caribbean <- c("Antigua and Barbuda", "Anguilla", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Aruba", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
 
 C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
-S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of", "Falkland Islands (Malvinas)")
 
 #Oceania
 Aus_NZ <- c("Australia", "New Zealand")
 Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Fiji, Republic of" )
 Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
-Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands")
+Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands", "Pitcairn Islands")
 
 #North AMerica
 N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
 
 #Europe
 E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine", "Former USSR")
-N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands" )
-S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR")
+N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands", "Isle of Man" )
+S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR", "San Marino")
 W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland" )
 
 
@@ -5766,7 +5480,7 @@ ggarrange(ggarrange(heat_map, heat_map_country, labels=c("a","b"), nrow=1, ncol=
 
 
 
-# Fig 4 - response across sectors
+# Production response in other sectors
 
 ```{r}
 #standardise Country names 
@@ -6270,22 +5984,148 @@ sd(crop_shocks$Aqua_change[!is.na(crop_shocks$Aqua_change)])
 
 ```
 
-
-
-
-
+#Random forest - what determines mutliple shocks in one year period
 
 ```{r}
-library(randomForest)
 
-data1 <- fread("car.data.csv") %>% 
-  rename(BuyingPrice=V1, Maintenance=V2, NumDoors=V3, NumPersons=V4, BootSpace=V5, Safety = V6, Condition = V7) %>% 
-  mutate_if(is.character, as.factor)
+# HDI <- fread("Human development index (HDI) (1).csv", header=T) %>% 
+#   gather(key = Year, value=HDI, -c(`HDI Rank (2015)`, Country)) %>% 
+#   arrange(Country) %>% 
+#   mutate(Codes = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>% 
+#   mutate(Year = as.integer(Year))
+# 
+# HDI_Countries <- split(unique(HDI$Country), unique(HDI$Country))
+# 
+# HDI_codes <- (lapply(HDI_Countries, function(target_country){
+#   hdi_local <- HDI$HDI[HDI$Country==target_country]
+#   hdi_local[is.na(hdi_local)] <- min(hdi_local[!is.na(hdi_local)])
+#   return(hdi_local)
+# })
+# )
+#   
+# HDI <- HDI %>% 
+#   mutate(HDI = unlist(HDI_codes))
+
+#land area data
+land_area <- fread("land_area.csv", header=T) %>% 
+  rename(Country=`Country Name`,
+         Codes = `Country Code`,
+         Indicator = `Indicator Name`,
+         Ind_code = `Indicator Code`) %>% 
+  select(-c(Indicator, Ind_code, `1960`)) %>% 
+  gather(key=Year, value=Area, -c(Country, Codes)) %>% 
+  mutate(Year = as.integer(Year)) %>% 
+  arrange(Country)
   
-  
-str(data1)
+
+land_locked <- fread("landlockedness.csv", header=T) %>% 
+  select(Country) %>% 
+  mutate(Codes = countrycode(Country, origin= "country.name", destination = "iso3c", warn=T)) %>% 
+  na.omit()
+
+#Countries where double jeopardies happened
+double_countries <-  unique(synchrony$Country[synchrony$nn>1])
+double_codes <- countrycode(double_countries, origin = "country.name", destination = "iso3c", warn=T)
+double_codes[is.na(double_codes)] <- "VIN"
 
 
+
+shockdrivers2 <-  shockdrivers %>% 
+  select(-c(PropMagnitude, Recovery,Driver, Reference,Scaled.recovery)) %>% 
+  mutate(Land_locked = case_when(Codes %in% land_locked$Codes ~ "Yes", 
+                                 T ~ "No")) %>% 
+  left_join(land_area, by=c("Codes", "Year")) %>% 
+  select(-Country.y) %>% 
+  mutate(Area = case_when(Country.x=="Guadeloupe" ~ 1628,
+                          Country.x=="Niue" ~ 261.5,
+                          Country.x=="Tokelau" ~ 10,
+                          Country.x=="Wallis and Futuna Islands" ~ 142.2,
+                          Country.x=="Former Czechoslovakia" ~ 127900,
+                          Country.x=="Anguilla" ~ 91,
+                          Country.x=="Belgium" ~ 30528,
+                          Country.x=="Cook Islands" ~ 236.7,
+                          Country.x=="Mayotte" ~ 374,
+                          Country.x=="Netherlands Antilles" ~ 999,
+                          Country.x=="Palau" ~ 459,
+                          Country.x=="St Helena" ~ 121.7,
+                          Country.x=="St. Pierre and Miquelon" ~ 242,
+                          Country.x=="French Guiana" ~ 83534,
+                          Country.x=="Martinique" ~ 1128,
+                          Country.x=="Montserrat" ~ 102,
+                          T ~ Area)) %>% 
+  mutate(Multiple_sectors = case_when(Codes %in% double_codes ~ "Yes",
+                                      T ~ "No")) %>% 
+  mutate_if(sapply(shockdrivers2, is.character), as.factor)
+
+
+
+#Random forest
+
+# sample from dataset
+set.seed(10)
+
+sample_size <-  floor(nrow(shockdrivers2)/2)
+indices <- sample(1:nrow(shockdrivers2), size=sample_size)
+
+#separate training and validation set
+
+training_set <- shockdrivers2[indices,]
+val_set <- shockdrivers2[-indices,]
+
+
+
+
+
+#perform training
+rf_classifier = randomForest(Multiple_sectors~SubRegion+Area, data = training_set, ntree=500, mtry=2)
+
+
+shockdrivers2
+
+
+exp(5)
+#subregion #category #land.area #sector #shock.size #recovery.time
+
+
+varImpPlot(rf_classifier)
+
+prediction_for_table <- predict(rf_classifier,validation1[,-5])
+table(observed=validation1[,5],predicted=prediction_for_table)
+
+library(ROCR) # roc curve and compute the area underneath
+
+prediction_for_roc_curve <- predict(rf_classifier,validation1[,-5],type="prob")
+
+pretty_colours <- c("#F8766D","#00BA38","#619CFF")
+# Specify the different classes 
+classes <- levels(validation1$Species)
+# For each class
+for (i in 1:length(classes)){
+  # Define which observations belong to class[i]
+  true_values <- ifelse(validation1[,5]==classes[i],1,0)
+  # Assess the performance of classifier for class[i]
+  pred <- prediction(prediction_for_roc_curve[,i],true_values)
+  perf <- performance(pred, "tpr", "fpr")
+  if (i==1)
+  {
+    plot(perf,main="ROC Curve",col=pretty_colours[i]) 
+  }
+  else
+  {
+    plot(perf,main="ROC Curve",col=pretty_colours[i],add=TRUE) 
+  }
+  # Calculate the AUC and print it to screen
+  auc.perf <- performance(pred, measure = "auc")
+  print(auc.perf@y.values)
+}
+
+
+
+
+
+
+
+?sample
 
 set.seed(100)
 train <- sample(nrow(data1), 0.7*nrow(data1), replace = TRUE)
@@ -6338,7 +6178,7 @@ a
 plot(3:8,a)
 
 
-
+shockdriver
 ```
   
   
@@ -6350,6 +6190,111 @@ plot(3:8,a)
 ```{r}
 #Get shock rates per region per sector
 
+#SUBREGIONS
+
+N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
+E_Africa <- c("Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Rwanda", "Seychelles", "Somalia", "South Sudan", "Uganda","Tanzania", "Zambia", "Zimbabwe","United Republic of Tanzania" , "Tanzania, United Rep. of", "Zanzibar", "Réunion")
+M_Africa <- c("Angola", "Cameroon", "Central African Republic", "Chad", "Congo", "Dem. Rep. Congo", "Equatorial Guinea", "Gabon", "Sao Tome and Principe", "St Helena", "Congo, Dem. Rep. of the", "Democratic Republic of the Congo" )
+S_Africa <- c("Botswana", "Lesotho", "Namibia", "South Africa", "Swaziland")
+W_Africa <- c("Benin", "Burkina Faso", "Cabo Verde", "Côte d'Ivoire", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger", "Nigeria", "Senegal", "Sierra Leone", "Togo", "Western Sahara")
+
+#Asia
+
+E_Asia <- c("China, mainland", "China, Hong Kong SAR", "China, Macao SAR",  "N. Korea", "Japan", "Mongolia", "Republic of Korea","Democratic People's Republic of Korea", "Korea, Dem. People's Rep", "Northern Mariana Is.", "China, Taiwan Province of")
+SE_Asia <- c("Brunei Darussalam", "Cambodia", "Indonesia", "Lao People's Democratic Republic", "Malaysia", "Myanmar", "Philippines", "Singapore", "Thailand", "Timor-Leste", "Viet Nam")
+S_Asia <- c("Afghanistan", "Bangladesh", "Bhutan", "India", "Iran (Islamic Republic of)", "Maldives", "Nepal", "Pakistan", "Sri Lanka")
+W_Asia <- c("Armenia", "Bahrain", "Cyprus", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon", "Oman", "Palestine", "Qatar", "Saudi Arabia","Syrian Arab Republic", "Turkey", "United Arab Emirates" , "Yemen")
+
+#Latin America/Caribbean
+
+Caribbean <- c("Antigua and Barbuda", "Anguilla", "Aruba", "Bahamas", "Barbados", "British Virgin Islands",  "Cuba", "Cayman Islands", "Dominica", "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Mayotte", "Montserrat", "Netherlands Antilles", "Puerto Rico", "Saint Kitts and Nevis", "Saint Lucia", "St. Vin.&Gren.", "Trinidad and Tobago", "Turks and Caicos Is.", "US Virgin Islands", "Saint Vincent and the Grenadines", "Saint Vincent/Grenadines")
+
+C_America <- c("Belize", "Costa Rica", "El Salvador", "Guatemala", "Honduras", "Mexico", "Nicaragua", "Panama")
+S_America <- c("Argentina", "Bolivia (Plurinational State of)", "Brazil", "Chile", "Colombia", "Ecuador", "French Guiana", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela","Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of", "Falkland Islands (Malvinas)")
+
+#Oceania
+Aus_NZ <- c("Australia", "New Zealand")
+Melanesia <- c("Fiji",  "New Caledonia", "Papua New Guinea", "Solomon Islands", "Vanuatu", "Fiji, Republic of" )
+Micronesia <- c("Guam", "Kiribati", "Marshall Islands", "Micronesia (Federated States of)", "Nauru", "Palau")
+Polynesia <- c("American Samoa", "Cook Islands", "French Polynesia", "Niue", "Samoa", "Tokelau", "Tonga", "Tuvalu", "Wallis and Futuna Islands", "Pitcairn Islands")
+
+#North AMerica
+N_America <- c("Bermuda", "United States of America", "Canada", "Greenland", "St. Pierre and Miquelon")
+
+#Europe
+E_Europe <- c("Bulgaria", "Former Czechoslovakia", "Hungary", "Poland", "Romania", "Ukraine", "Former USSR")
+N_Europe <- c("Denmark", "Finland", "Iceland", "Ireland", "Norway", "Sweden", "United Kingdom", "Faroe Islands", "Isle of Man" )
+S_Europe <- c("Albania", "Andorra", "Croatia", "Greece", "Italy", "Malta", "Portugal", "Spain",  "Former Yugoslav SFR", "San Marino")
+W_Europe <- c("Austria", "Belgium", "France", "Germany", "Luxembourg", "Netherlands", "Switzerland", "Liechtenstein" )
+
+#sub region codes
+N_Africa_codes <- countrycode(N_Africa, origin = "country.name", destination="iso3c", warn=T)
+E_Africa_codes <- countrycode(E_Africa, origin = "country.name", destination="iso3c", warn=T )
+M_Africa_codes <-  countrycode(M_Africa, origin = "country.name", destination="iso3c", warn=T) 
+S_Africa_codes <- countrycode(S_Africa, origin = "country.name", destination="iso3c", warn=T)
+W_Africa_codes <- countrycode(W_Africa, origin = "country.name", destination="iso3c", warn=T)
+
+E_Asia_codes <-  countrycode(E_Asia, origin = "country.name", destination="iso3c", warn=T)
+SE_Asia_codes <- countrycode(SE_Asia, origin = "country.name", destination="iso3c", warn=T)
+S_Asia_codes <- countrycode(S_Asia, origin = "country.name", destination="iso3c", warn=T)
+W_Asia_codes <-  countrycode(W_Asia, origin = "country.name", destination="iso3c", warn=T)
+
+Caribbean_codes <- countrycode(Caribbean, origin = "country.name", destination="iso3c", warn=T)
+Caribbean_codes[is.na(Caribbean_codes)] <- "VIN"
+C_America_codes <- countrycode(C_America, origin = "country.name", destination="iso3c", warn=T)
+S_America_codes <- countrycode(S_America, origin = "country.name", destination="iso3c", warn=T)
+N_America_codes <- countrycode(N_America, origin = "country.name", destination="iso3c", warn=T)
+
+
+Aus_NZ_codes <- countrycode(Aus_NZ, origin = "country.name", destination="iso3c", warn=T)
+Melanesia_codes <- countrycode(Melanesia, origin = "country.name", destination="iso3c", warn=T) 
+Micronesia_codes <- countrycode(Micronesia, origin = "country.name", destination="iso3c", warn=T)
+Polynesia_codes <- countrycode(Polynesia, origin = "country.name", destination="iso3c", warn=T) 
+
+E_Europe_codes <- countrycode(E_Europe, origin = "country.name", destination="iso3c", warn=T)
+N_Europe_codes <-  countrycode(N_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes <- countrycode(S_Europe, origin = "country.name", destination="iso3c", warn=T)
+S_Europe_codes[is.na(S_Europe_codes)] <- "BIH"
+W_Europe_codes <- countrycode(W_Europe, origin = "country.name", destination="iso3c", warn=T)
+
+
+
+shockdrivers <- 
+  fread("Shocks and drivers tidy3.csv", header=T) %>% 
+  mutate(Country = case_when(Country %in% c("Democratic People's Republic of Korea", "Korea, Dem. People's Rep") ~ "N. Korea",
+                             Country %in% c("Venezuela (Bolivarian Republic of)", "Venezuela, Boliv Rep of") ~ "Venezuela",
+                             Country %in% c("Congo, Dem. Rep. of the", "Democratic Republic of the Congo") ~ "Dem. Rep. Congo",
+                             Country %in% c("Fiji, Republic of" ) ~ "Fiji",
+                             Country %in% c("Saint Vincent and the Grenadines", "Saint Vincent/Grenadines" ) ~ "St. Vin.&Gren.",
+                             Country %in% c("United Republic of Tanzania" , "Tanzania, United Rep. of" ) ~ "Tanzania",
+                             T ~ Country)) %>% 
+  mutate(SubRegion = case_when(Country %in% N_Africa ~ "North Africa",
+                               Country %in% M_Africa ~ "Central Africa",
+                               Country %in% S_Africa ~ "Southern Africa",
+                               Country %in% W_Africa ~ "West Africa",
+                               Country %in% E_Africa ~ "East Africa",
+                               #Country %in% Former_USSR ~ "Former USSR",
+                               Country %in% E_Asia ~ "East Asia",
+                               Country %in% SE_Asia ~ "SE Asia",
+                               Country %in% S_Asia ~ "South Asia",
+                               Country %in% W_Asia ~ "Western Asia",
+                               Country %in% Caribbean ~ "Caribbean",
+                               Country %in% C_America ~ "Central America",
+                               Country %in% S_America ~ "South America",
+                               Country %in% N_America ~ "North America",
+                               Country %in% Aus_NZ ~ "Australia/NZ",
+                               Country %in% Micronesia ~ "Micronesia",
+                               Country %in% Melanesia ~ "Melanesia",
+                               Country %in% Polynesia ~ "Polynesia",
+                               Country %in% N_Europe ~ "Northern Europe",
+                               Country %in% E_Europe ~ "Eastern Europe",
+                               Country %in% S_Europe ~ "Southern Europe",
+                               Country %in% W_Europe ~ "Western Europe"))
+
+
+
+
+#Crops
 Country<-levels(aggcrops$Country)
 Codes<- countrycode(levels(aggcrops$Country), origin = "country.name", destination = "iso3c", warn=T)
 Continent<- countrycode(levels(aggcrops$Country), origin = "country.name", destination = "continent")
@@ -6357,88 +6302,96 @@ cropsSR<-cbind.data.frame(Country, Codes, Continent)
 cropsSR$Continent <-as.character(cropsSR$Continent)
 
 
-cropsSR$Continent[cropsSR$Code=="BHR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="IRN"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="IRQ"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="SAU"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="ARE"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="KWT"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="QAT"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="LBN"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="JOR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="DZA"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="LBY"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="SYR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="EGY"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="MAR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="TUN"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="DZA"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="ISR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="JOR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="MLT"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="MAR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="PSE"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="OMN"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="SYR"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="ARE"]<-"Middle East and North Africa"
-cropsSR$Continent[cropsSR$Code=="YEM"]<-"Middle East and North Africa"
+cropsSR$Continent[cropsSR$Code %in% N_Africa_codes]<-"North Africa"
+cropsSR$Continent[cropsSR$Code %in% E_Africa_codes]<-"East Africa"
+cropsSR$Continent[cropsSR$Code %in% W_Africa_codes]<-"West Africa"
+cropsSR$Continent[cropsSR$Code %in% M_Africa_codes]<-"Central Africa"
+cropsSR$Continent[cropsSR$Code %in% S_Africa_codes]<-"Southern Africa"
+cropsSR$Continent[cropsSR$Code %in% W_Asia_codes]<-"Western Asia"
+cropsSR$Continent[cropsSR$Code %in% S_Asia_codes]<-"South Asia"
+cropsSR$Continent[cropsSR$Code %in% SE_Asia_codes]<-"SE Asia"
+cropsSR$Continent[cropsSR$Code %in% E_Asia_codes]<-"East Asia"
+cropsSR$Continent[cropsSR$Code %in% Caribbean_codes]<-"Caribbean"
+cropsSR$Continent[cropsSR$Code %in% N_America_codes]<-"North America"
+cropsSR$Continent[cropsSR$Code %in% C_America_codes]<-"Central America"
+cropsSR$Continent[cropsSR$Code %in% S_America_codes]<-"South America"
+cropsSR$Continent[cropsSR$Code %in% Aus_NZ_codes]<-"Australia/NZ"
+cropsSR$Continent[cropsSR$Code %in% Melanesia_codes]<-"Melanesia"
+cropsSR$Continent[cropsSR$Code %in% Micronesia_codes]<-"Micronesia"
+cropsSR$Continent[cropsSR$Code %in% Polynesia_codes]<-"Polynesia"
+cropsSR$Continent[cropsSR$Code %in% E_Europe_codes]<-"Eastern Europe"
+cropsSR$Continent[cropsSR$Code %in% N_Europe_codes]<-"Northern Europe"
+cropsSR$Continent[cropsSR$Code %in% W_Europe_codes]<-"Western Europe"
+cropsSR$Continent[cropsSR$Code %in% S_Europe_codes]<-"Southern Europe"
 
-#North America
-cropsSR$Continent[cropsSR$Code=="BMU"]<-"North America"
-cropsSR$Continent[cropsSR$Code=="GRL"]<-"North America"
-cropsSR$Continent[cropsSR$Code=="USA"]<-"North America"
-cropsSR$Continent[cropsSR$Code=="CAN"]<-"North America"
-cropsSR$Continent[cropsSR$Code=="SPM"]<-"North America"
+cropsSR$Codes <- as.character(cropsSR$Codes)
+cropsSR$Continent <- as.character(cropsSR$Continent)
 
-
-#Latin America and Caribbean
-cropsSR$Continent[cropsSR$Continent=="Americas"]<-"Latin America and Caribbean"
-
-
-#Europe and Central Asia
-cropsSR$Continent[cropsSR$Continent=="Europe"]<-"Europe and Central Asia"
-cropsSR$Continent[cropsSR$Code=="CYP"]<-"Europe and Central Asia"
-cropsSR$Continent[cropsSR$Code=="TUR"]<-"Europe and Central Asia"
-
-
-#South Asia
-cropsSR$Continent[cropsSR$Code=="BTN"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="AFG"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="IND"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="LKA"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="MDV"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="BGD"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="PAK"]<-"South Asia"
-cropsSR$Continent[cropsSR$Code=="NPL"]<-"South Asia"
-
-#East Asia
-cropsSR$Continent[cropsSR$Continent=="Asia"]<-"East Asia"
-cropsSR$Codes <-as.character(cropsSR$Codes)
 cropsSR$Codes[cropsSR$Country=="Former Yugoslav SFR"]<-"BIH"
 cropsSR$Codes[cropsSR$Country=="Former Czechoslovakia"]<-"CZE"
-cropsSR$Continent[cropsSR$Country=="Former Czechoslovakia"]<-"Europe and Central Asia"
-cropsSR$Continent[cropsSR$Country=="Former Yugoslav SFR"]<-"Europe and Central Asia"
+cropsSR$Continent[cropsSR$Country=="Former Czechoslovakia"]<-"Eastern Europe"
+cropsSR$Continent[cropsSR$Country=="Former Yugoslav SFR"]<-"Southern Europe"
+
+
+
+#calculate shock rates 
+
+cropsSR$Rate[cropsSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="North America",])/ length(unique(aggcrops$Country[aggcrops$Continent=="North America"]))
+
+cropsSR$Rate[cropsSR$Continent=="Central America"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Central America",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Central America"]))
+
+cropsSR$Rate[cropsSR$Continent=="Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Caribbean",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Caribbean"]))
+
+cropsSR$Rate[cropsSR$Continent=="South America"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="South America",])/ length(unique(aggcrops$Country[aggcrops$Continent=="South America"]))
+
+cropsSR$Rate[cropsSR$Continent=="Northern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Northern Europe",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Northern Europe"]))
+
+cropsSR$Rate[cropsSR$Continent=="Western Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Western Europe",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Western Europe"]))
+
+cropsSR$Rate[cropsSR$Continent=="Southern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Southern Europe",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Southern Europe"]))
+
+cropsSR$Rate[cropsSR$Continent=="Eastern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Eastern Europe",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Eastern Europe"]))
+
+cropsSR$Rate[cropsSR$Continent=="North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="North Africa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="North Africa"]))
+
+cropsSR$Rate[cropsSR$Continent=="West Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="West Africa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="West Africa"]))
+
+cropsSR$Rate[cropsSR$Continent=="Central Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Central Africa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Central Africa"]))
+
+cropsSR$Rate[cropsSR$Continent=="Southern Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Southern Africa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Southern Africa"]))
+
+cropsSR$Rate[cropsSR$Continent=="East Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="East Africa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="East Africa"]))
+
+cropsSR$Rate[cropsSR$Continent=="Western Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Western Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Western Asia"]))
+
+cropsSR$Rate[cropsSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="South Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="South Asia"]))
+
+cropsSR$Rate[cropsSR$Continent=="SE Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="SE Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="SE Asia"]))
+
+cropsSR$Rate[cropsSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="East Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="East Asia"]))
+
+cropsSR$Rate[cropsSR$Continent=="Australia/NZ"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Australia/NZ",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Australia/NZ"]))
+
+cropsSR$Rate[cropsSR$Continent=="Melanesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Melanesia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Melanesia"]))
+
+cropsSR$Rate[cropsSR$Continent=="Micronesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Micronesia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Micronesia"]))
+
+cropsSR$Rate[cropsSR$Continent=="Polynesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$SubRegion=="Polynesia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Polynesia"]))
 
 
 
 
-#crops
-cropsSR$Rate[cropsSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="South Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="South Asia"]))
-
-cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="EuCA",])/ length(unique(aggcrops$Country[aggcrops$Continent=="EuCA"]))
-
-cropsSR$Rate[cropsSR$Continent=="Middle East and North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="MENA",])/ length(unique(aggcrops$Country[aggcrops$Continent=="MENA"]))
 
 
-cropsSR$Rate[cropsSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="East Asia",])/ length(unique(aggcrops$Country[aggcrops$Continent=="East Asia"]))
 
-cropsSR$Rate[cropsSR$Continent=="Oceania"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="Oceania",])/ length(unique(aggcrops$Country[aggcrops$Continent=="Oceania"]))
 
-cropsSR$Rate[cropsSR$Continent=="Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="SSA",])/ length(unique(aggcrops$Country[aggcrops$Continent=="SSA"]))
 
-cropsSR$Rate[cropsSR$Continent=="Latin America and Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="LACa",])/ length(unique(aggcrops$Country[aggcrops$Continent=="LACa"]))
 
-cropsSR$Rate[cropsSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Crops" & shockdrivers$Region=="North America",])/ length(unique(aggcrops$Country[aggcrops$Continent=="North America"]))
+
+
+
+
+
 
 
 #Livestock rates 
@@ -6451,85 +6404,85 @@ livestockSR$Continent <-as.character(livestockSR$Continent)
 livestockSR$Code <- as.character(livestockSR$Code)
 
 
-livestockSR$Continent[livestockSR$Code=="BHR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="IRN"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="IRQ"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="SAU"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="ARE"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="KWT"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="QAT"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="LBN"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="JOR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="DZA"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="LBY"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="SYR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="EGY"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="MAR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="TUN"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="DZA"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="ISR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="JOR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="MLT"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="MAR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="PSE"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="OMN"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="SYR"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="ARE"]<-"Middle East and North Africa"
-livestockSR$Continent[livestockSR$Code=="YEM"]<-"Middle East and North Africa"
 
-#North America
-livestockSR$Continent[livestockSR$Code=="BMU"]<-"North America"
-livestockSR$Continent[livestockSR$Code=="GRL"]<-"North America"
-livestockSR$Continent[livestockSR$Code=="USA"]<-"North America"
-livestockSR$Continent[livestockSR$Code=="CAN"]<-"North America"
-livestockSR$Continent[livestockSR$Code=="SPM"]<-"North America"
+livestockSR$Continent[livestockSR$Code %in% N_Africa_codes]<-"North Africa"
+livestockSR$Continent[livestockSR$Code %in% E_Africa_codes]<-"East Africa"
+livestockSR$Continent[livestockSR$Code %in% W_Africa_codes]<-"West Africa"
+livestockSR$Continent[livestockSR$Code %in% M_Africa_codes]<-"Central Africa"
+livestockSR$Continent[livestockSR$Code %in% S_Africa_codes]<-"Southern Africa"
+livestockSR$Continent[livestockSR$Code %in% W_Asia_codes]<-"Western Asia"
+livestockSR$Continent[livestockSR$Code %in% S_Asia_codes]<-"South Asia"
+livestockSR$Continent[livestockSR$Code %in% SE_Asia_codes]<-"SE Asia"
+livestockSR$Continent[livestockSR$Code %in% E_Asia_codes]<-"East Asia"
+livestockSR$Continent[livestockSR$Code %in% Caribbean_codes]<-"Caribbean"
+livestockSR$Continent[livestockSR$Code %in% N_America_codes]<-"North America"
+livestockSR$Continent[livestockSR$Code %in% C_America_codes]<-"Central America"
+livestockSR$Continent[livestockSR$Code %in% S_America_codes]<-"South America"
+livestockSR$Continent[livestockSR$Code %in% Aus_NZ_codes]<-"Australia/NZ"
+livestockSR$Continent[livestockSR$Code %in% Melanesia_codes]<-"Melanesia"
+livestockSR$Continent[livestockSR$Code %in% Micronesia_codes]<-"Micronesia"
+livestockSR$Continent[livestockSR$Code %in% Polynesia_codes]<-"Polynesia"
+livestockSR$Continent[livestockSR$Code %in% E_Europe_codes]<-"Eastern Europe"
+livestockSR$Continent[livestockSR$Code %in% N_Europe_codes]<-"Northern Europe"
+livestockSR$Continent[livestockSR$Code %in% W_Europe_codes]<-"Western Europe"
+livestockSR$Continent[livestockSR$Code %in% S_Europe_codes]<-"Southern Europe"
 
-
-#Latin America and Caribbean
-livestockSR$Continent[livestockSR$Continent=="Americas"]<-"Latin America and Caribbean"
-
-
-#Europe and Central Asia
-livestockSR$Continent[livestockSR$Continent=="Europe"]<-"Europe and Central Asia"
-livestockSR$Continent[livestockSR$Code=="CYP"]<-"Europe and Central Asia"
-livestockSR$Continent[livestockSR$Code=="TUR"]<-"Europe and Central Asia"
-
-
-#South Asia
-livestockSR$Continent[livestockSR$Code=="BTN"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="AFG"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="IND"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="LKA"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="MDV"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="BGD"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="PAK"]<-"South Asia"
-livestockSR$Continent[livestockSR$Code=="NPL"]<-"South Asia"
-
-#East Asia and Pacific
-livestockSR$Continent[livestockSR$Continent=="Asia"]<-"East Asia"
+# livestockSR$Codes <- as.character(livestockSR$Codes)
+# livestockSR$Continent <- as.character(livestockSR$Continent)
 
 livestockSR$Code[livestockSR$Country=="Former Yugoslav SFR"]<-"BIH"
 livestockSR$Code[livestockSR$Country=="Former Czechoslovakia"]<-"CZE"
-livestockSR$Continent[livestockSR$Country=="Former Czechoslovakia"]<-"Europe and Central Asia"
-livestockSR$Continent[livestockSR$Country=="Former Yugoslav SFR"]<-"Europe and Central Asia"
+livestockSR$Continent[livestockSR$Country=="Former Czechoslovakia"]<-"Eastern Europe"
+livestockSR$Continent[livestockSR$Country=="Former Yugoslav SFR"]<-"Southern Europe"
 
 
-#Rates
-livestockSR$Rate[livestockSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="South Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="South Asia"]))
 
-livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="EuCA",])/ length(unique(agglivestock$Country[agglivestock$Continent=="EuCA"]))
+#calculate shock rates 
 
-livestockSR$Rate[livestockSR$Continent=="Middle East and North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="MENA",])/ length(unique(agglivestock$Country[agglivestock$Continent=="MENA"]))
+livestockSR$Rate[livestockSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="North America",])/ length(unique(agglivestock$Country[agglivestock$Continent=="North America"]))
 
-livestockSR$Rate[livestockSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="East Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="East Asia"]))
+livestockSR$Rate[livestockSR$Continent=="Central America"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Central America",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Central America"]))
 
-livestockSR$Rate[livestockSR$Continent=="Oceania"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="Oceania",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Oceania"]))
+livestockSR$Rate[livestockSR$Continent=="Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Caribbean",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Caribbean"]))
 
-livestockSR$Rate[livestockSR$Continent=="Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="SSA",])/ length(unique(agglivestock$Country[agglivestock$Continent=="SSA"]))
+livestockSR$Rate[livestockSR$Continent=="South America"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="South America",])/ length(unique(agglivestock$Country[agglivestock$Continent=="South America"]))
 
-livestockSR$Rate[livestockSR$Continent=="Latin America and Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="LACa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="LACa"]))
+livestockSR$Rate[livestockSR$Continent=="Northern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Northern Europe",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Northern Europe"]))
 
-livestockSR$Rate[livestockSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$Region=="North America",])/ length(unique(agglivestock$Country[agglivestock$Continent=="North America"]))
+livestockSR$Rate[livestockSR$Continent=="Western Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Western Europe",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Western Europe"]))
+
+livestockSR$Rate[livestockSR$Continent=="Southern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Southern Europe",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Southern Europe"]))
+
+livestockSR$Rate[livestockSR$Continent=="Eastern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Eastern Europe",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Eastern Europe"]))
+
+livestockSR$Rate[livestockSR$Continent=="North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="North Africa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="North Africa"]))
+
+livestockSR$Rate[livestockSR$Continent=="West Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="West Africa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="West Africa"]))
+
+livestockSR$Rate[livestockSR$Continent=="Central Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Central Africa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Central Africa"]))
+
+livestockSR$Rate[livestockSR$Continent=="Southern Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Southern Africa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Southern Africa"]))
+
+livestockSR$Rate[livestockSR$Continent=="East Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="East Africa",])/ length(unique(agglivestock$Country[agglivestock$Continent=="East Africa"]))
+
+livestockSR$Rate[livestockSR$Continent=="Western Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Western Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Western Asia"]))
+
+livestockSR$Rate[livestockSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="South Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="South Asia"]))
+
+livestockSR$Rate[livestockSR$Continent=="SE Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="SE Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="SE Asia"]))
+
+livestockSR$Rate[livestockSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="East Asia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="East Asia"]))
+
+livestockSR$Rate[livestockSR$Continent=="Australia/NZ"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Australia/NZ",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Australia/NZ"]))
+
+livestockSR$Rate[livestockSR$Continent=="Melanesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Melanesia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Melanesia"]))
+
+livestockSR$Rate[livestockSR$Continent=="Micronesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Micronesia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Micronesia"]))
+
+livestockSR$Rate[livestockSR$Continent=="Polynesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Livestock" & shockdrivers$SubRegion=="Polynesia",])/ length(unique(agglivestock$Country[agglivestock$Continent=="Polynesia"]))
+
+
+
 
 
 #FISHERIES
@@ -6542,85 +6495,86 @@ fisheriesSR$Continent <-as.character(fisheriesSR$Continent)
 fisheriesSR$Code <-as.character(fisheriesSR$Code)
 
 
-fisheriesSR$Continent[fisheriesSR$Code=="BHR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="IRN"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="IRQ"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="SAU"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="ARE"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="KWT"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="QAT"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="LBN"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="JOR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="DZA"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="LBY"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="SYR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="EGY"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="MAR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="TUN"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="DZA"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="ISR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="JOR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="MLT"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="MAR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="PSE"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="OMN"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="SYR"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="ARE"]<-"Middle East and North Africa"
-fisheriesSR$Continent[fisheriesSR$Code=="YEM"]<-"Middle East and North Africa"
 
-#North America
-fisheriesSR$Continent[fisheriesSR$Code=="BMU"]<-"North America"
-fisheriesSR$Continent[fisheriesSR$Code=="GRL"]<-"North America"
-fisheriesSR$Continent[fisheriesSR$Code=="USA"]<-"North America"
-fisheriesSR$Continent[fisheriesSR$Code=="CAN"]<-"North America"
-fisheriesSR$Continent[fisheriesSR$Code=="SPM"]<-"North America"
+fisheriesSR$Continent[fisheriesSR$Code %in% N_Africa_codes]<-"North Africa"
+fisheriesSR$Continent[fisheriesSR$Code %in% E_Africa_codes]<-"East Africa"
+fisheriesSR$Continent[fisheriesSR$Code %in% W_Africa_codes]<-"West Africa"
+fisheriesSR$Continent[fisheriesSR$Code %in% M_Africa_codes]<-"Central Africa"
+fisheriesSR$Continent[fisheriesSR$Code %in% S_Africa_codes]<-"Southern Africa"
+fisheriesSR$Continent[fisheriesSR$Code %in% W_Asia_codes]<-"Western Asia"
+fisheriesSR$Continent[fisheriesSR$Code %in% S_Asia_codes]<-"South Asia"
+fisheriesSR$Continent[fisheriesSR$Code %in% SE_Asia_codes]<-"SE Asia"
+fisheriesSR$Continent[fisheriesSR$Code %in% E_Asia_codes]<-"East Asia"
+fisheriesSR$Continent[fisheriesSR$Code %in% Caribbean_codes]<-"Caribbean"
+fisheriesSR$Continent[fisheriesSR$Code %in% N_America_codes]<-"North America"
+fisheriesSR$Continent[fisheriesSR$Code %in% C_America_codes]<-"Central America"
+fisheriesSR$Continent[fisheriesSR$Code %in% S_America_codes]<-"South America"
+fisheriesSR$Continent[fisheriesSR$Code %in% Aus_NZ_codes]<-"Australia/NZ"
+fisheriesSR$Continent[fisheriesSR$Code %in% Melanesia_codes]<-"Melanesia"
+fisheriesSR$Continent[fisheriesSR$Code %in% Micronesia_codes]<-"Micronesia"
+fisheriesSR$Continent[fisheriesSR$Code %in% Polynesia_codes]<-"Polynesia"
+fisheriesSR$Continent[fisheriesSR$Code %in% E_Europe_codes]<-"Eastern Europe"
+fisheriesSR$Continent[fisheriesSR$Code %in% N_Europe_codes]<-"Northern Europe"
+fisheriesSR$Continent[fisheriesSR$Code %in% W_Europe_codes]<-"Western Europe"
+fisheriesSR$Continent[fisheriesSR$Code %in% S_Europe_codes]<-"Southern Europe"
 
-
-#Latin America and Caribbean
-fisheriesSR$Continent[fisheriesSR$Continent=="Americas"]<-"Latin America and Caribbean"
-
-
-#Europe and Central Asia
-fisheriesSR$Continent[fisheriesSR$Continent=="Europe"]<-"Europe and Central Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="CYP"]<-"Europe and Central Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="TUR"]<-"Europe and Central Asia"
-
-
-#South Asia
-fisheriesSR$Continent[fisheriesSR$Code=="BTN"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="AFG"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="IND"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="LKA"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="MDV"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="BGD"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="PAK"]<-"South Asia"
-fisheriesSR$Continent[fisheriesSR$Code=="NPL"]<-"South Asia"
-
-#East Asia and Pacific
-fisheriesSR$Continent[fisheriesSR$Continent=="Asia"]<-"East Asia"
+# livestockSR$Codes <- as.character(livestockSR$Codes)
+# livestockSR$Continent <- as.character(livestockSR$Continent)
 
 fisheriesSR$Code[fisheriesSR$Country=="Former Yugoslav SFR"]<-"BIH"
 fisheriesSR$Code[fisheriesSR$Country=="Former Czechoslovakia"]<-"CZE"
-fisheriesSR$Continent[fisheriesSR$Country=="Former Czechoslovakia"]<-"Europe and Central Asia"
-fisheriesSR$Continent[fisheriesSR$Country=="Former Yugoslav SFR"]<-"Europe and Central Asia"
+fisheriesSR$Continent[fisheriesSR$Country=="Former Czechoslovakia"]<-"Eastern Europe"
+fisheriesSR$Continent[fisheriesSR$Country=="Former Yugoslav SFR"]<-"Southern Europe"
 
-#Rates
 
-fisheriesSR$Rate[fisheriesSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="South Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="South Asia"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="Europe and Central Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="EuCA",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="EuCA"]))
+#calculate shock rates 
 
-fisheriesSR$Rate[fisheriesSR$Continent=="Middle East and North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="MENA",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="MENA"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="North America",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="North America"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="East Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="East Asia"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="Central America"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Central America",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Central America"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="Oceania"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="Oceania",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Oceania"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Caribbean",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Caribbean"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="SSA",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="SSA"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="South America"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="South America",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="South America"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="Latin America and Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="LACa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="LACa"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="Northern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Northern Europe",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Northern Europe"]))
 
-fisheriesSR$Rate[fisheriesSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$Region=="North America",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="North America"]))
+fisheriesSR$Rate[fisheriesSR$Continent=="Western Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Western Europe",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Western Europe"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Southern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Southern Europe",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Southern Europe"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Eastern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Eastern Europe",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Eastern Europe"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="North Africa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="North Africa"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="West Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="West Africa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="West Africa"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Central Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Central Africa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Central Africa"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Southern Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Southern Africa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Southern Africa"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="East Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="East Africa",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="East Africa"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Western Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Western Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Western Asia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="South Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="South Asia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="SE Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="SE Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="SE Asia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="East Asia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="East Asia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Australia/NZ"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Australia/NZ",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Australia/NZ"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Melanesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Melanesia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Melanesia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Micronesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Micronesia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Micronesia"]))
+
+fisheriesSR$Rate[fisheriesSR$Continent=="Polynesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Fisheries" & shockdrivers$SubRegion=="Polynesia",])/ length(unique(aggfisheries$Country[aggfisheries$Continent=="Polynesia"]))
+
+
+
+
 
 #AQUACULTURE
 
@@ -6633,88 +6587,88 @@ aquacultureSR$Continent <-as.character(aquacultureSR$Continent)
 aquacultureSR$Code <-as.character(aquacultureSR$Code)
 
 
+aquacultureSR$Continent[aquacultureSR$Code %in% N_Africa_codes]<-"North Africa"
+aquacultureSR$Continent[aquacultureSR$Code %in% E_Africa_codes]<-"East Africa"
+aquacultureSR$Continent[aquacultureSR$Code %in% W_Africa_codes]<-"West Africa"
+aquacultureSR$Continent[aquacultureSR$Code %in% M_Africa_codes]<-"Central Africa"
+aquacultureSR$Continent[aquacultureSR$Code %in% S_Africa_codes]<-"Southern Africa"
+aquacultureSR$Continent[aquacultureSR$Code %in% W_Asia_codes]<-"Western Asia"
+aquacultureSR$Continent[aquacultureSR$Code %in% S_Asia_codes]<-"South Asia"
+aquacultureSR$Continent[aquacultureSR$Code %in% SE_Asia_codes]<-"SE Asia"
+aquacultureSR$Continent[aquacultureSR$Code %in% E_Asia_codes]<-"East Asia"
+aquacultureSR$Continent[aquacultureSR$Code %in% Caribbean_codes]<-"Caribbean"
+aquacultureSR$Continent[aquacultureSR$Code %in% N_America_codes]<-"North America"
+aquacultureSR$Continent[aquacultureSR$Code %in% C_America_codes]<-"Central America"
+aquacultureSR$Continent[aquacultureSR$Code %in% S_America_codes]<-"South America"
+aquacultureSR$Continent[aquacultureSR$Code %in% Aus_NZ_codes]<-"Australia/NZ"
+aquacultureSR$Continent[aquacultureSR$Code %in% Melanesia_codes]<-"Melanesia"
+aquacultureSR$Continent[aquacultureSR$Code %in% Micronesia_codes]<-"Micronesia"
+aquacultureSR$Continent[aquacultureSR$Code %in% Polynesia_codes]<-"Polynesia"
+aquacultureSR$Continent[aquacultureSR$Code %in% E_Europe_codes]<-"Eastern Europe"
+aquacultureSR$Continent[aquacultureSR$Code %in% N_Europe_codes]<-"Northern Europe"
+aquacultureSR$Continent[aquacultureSR$Code %in% W_Europe_codes]<-"Western Europe"
+aquacultureSR$Continent[aquacultureSR$Code %in% S_Europe_codes]<-"Southern Europe"
 
-aquacultureSR$Continent[aquacultureSR$Code=="BHR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="IRN"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="IRQ"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="SAU"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="ARE"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="KWT"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="QAT"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="LBN"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="JOR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="DZA"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="LBY"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="SYR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="EGY"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="MAR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="TUN"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="DZA"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="ISR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="JOR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="MLT"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="MAR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="PSE"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="OMN"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="SYR"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="ARE"]<-"Middle East and North Africa"
-aquacultureSR$Continent[aquacultureSR$Code=="YEM"]<-"Middle East and North Africa"
-
-#North America
-aquacultureSR$Continent[aquacultureSR$Code=="BMU"]<-"North America"
-aquacultureSR$Continent[aquacultureSR$Code=="GRL"]<-"North America"
-aquacultureSR$Continent[aquacultureSR$Code=="USA"]<-"North America"
-aquacultureSR$Continent[aquacultureSR$Code=="CAN"]<-"North America"
-aquacultureSR$Continent[aquacultureSR$Code=="SPM"]<-"North America"
-
-
-#Latin America and Caribbean
-aquacultureSR$Continent[aquacultureSR$Continent=="Americas"]<-"Latin America and Caribbean"
-
-
-#Europe and Central Asia
-aquacultureSR$Continent[aquacultureSR$Continent=="Europe"]<-"Europe and Central Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="CYP"]<-"Europe and Central Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="TUR"]<-"Europe and Central Asia"
-
-
-#South Asia
-aquacultureSR$Continent[aquacultureSR$Code=="BTN"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="AFG"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="IND"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="LKA"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="MDV"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="BGD"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="PAK"]<-"South Asia"
-aquacultureSR$Continent[aquacultureSR$Code=="NPL"]<-"South Asia"
-
-#East Asia and Pacific
-aquacultureSR$Continent[aquacultureSR$Continent=="Asia"]<-"East Asia"
+# livestockSR$Codes <- as.character(livestockSR$Codes)
+# livestockSR$Continent <- as.character(livestockSR$Continent)
 
 aquacultureSR$Code[aquacultureSR$Country=="Former Yugoslav SFR"]<-"BIH"
 aquacultureSR$Code[aquacultureSR$Country=="Former Czechoslovakia"]<-"CZE"
-aquacultureSR$Continent[aquacultureSR$Country=="Former Czechoslovakia"]<-"Europe and Central Asia"
-aquacultureSR$Continent[aquacultureSR$Country=="Former Yugoslav SFR"]<-"Europe and Central Asia"
-aquacultureSR$Continent[aquacultureSR$Country=="Zanzibar"]<-"Africa"
+aquacultureSR$Continent[aquacultureSR$Country=="Former Czechoslovakia"]<-"Eastern Europe"
+aquacultureSR$Continent[aquacultureSR$Country=="Former Yugoslav SFR"]<-"Southern Europe"
 
 
-#Rates 
 
-aquacultureSR$Rate[aquacultureSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="South Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="South Asia"]))
+#calculate shock rates 
 
-aquacultureSR$Rate[aquacultureSR$Continent=="Europe and Central Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="EuCA",])/ length(unique(aggaqua$Country[aggaqua$Continent=="EuCA"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="North America",])/ length(unique(aggaqua$Country[aggaqua$Continent=="North America"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="Middle East and North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="MENA",])/ length(unique(aggaqua$Country[aggaqua$Continent=="MENA"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="Central America"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Central America",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Central America"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="East Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="East Asia"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Caribbean",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Caribbean"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="Oceania"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="Oceania",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Oceania"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="South America"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="South America",])/ length(unique(aggaqua$Country[aggaqua$Continent=="South America"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="SSA",])/ length(unique(aggaqua$Country[aggaqua$Continent=="SSA"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="Northern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Northern Europe",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Northern Europe"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="Latin America and Caribbean"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="LACa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="LACa"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="Western Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Western Europe",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Western Europe"]))
 
-aquacultureSR$Rate[aquacultureSR$Continent=="North America"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$Region=="North America",])/ length(unique(aggaqua$Country[aggaqua$Continent=="North America"]))
+aquacultureSR$Rate[aquacultureSR$Continent=="Southern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Southern Europe",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Southern Europe"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Eastern Europe"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Eastern Europe",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Eastern Europe"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="North Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="North Africa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="North Africa"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="West Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="West Africa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="West Africa"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Central Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Central Africa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Central Africa"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Southern Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Southern Africa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Southern Africa"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="East Africa"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="East Africa",])/ length(unique(aggaqua$Country[aggaqua$Continent=="East Africa"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Western Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Western Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Western Asia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="South Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="South Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="South Asia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="SE Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="SE Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="SE Asia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="East Asia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="East Asia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="East Asia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Australia/NZ"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Australia/NZ",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Australia/NZ"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Melanesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Melanesia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Melanesia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Micronesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Micronesia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Micronesia"]))
+
+aquacultureSR$Rate[aquacultureSR$Continent=="Polynesia"]<- nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & shockdrivers$SubRegion=="Polynesia",])/ length(unique(aggaqua$Country[aggaqua$Continent=="Polynesia"]))
+
+
+
+
+
+
+
 
 
 #Mapping
@@ -6830,59 +6784,61 @@ eez_aqua.df<-join(eez_aqua.df, eez_aqua@data, by="id")
 
 #ADJUSTING CROP RATE DISPLAY FOR AGGREGATED COUNTRIES
 
-CRworld.df$Rate[CRworld.df$iso_a3=="GRL"]<-unique(cropsSR$Rate[cropsSR$Continent=="North America"])
+CRworld.df$Rate[CRworld.df$iso_a3=="GRL"]<- unique(cropsSR$Rate[cropsSR$Continent=="North America"])
 
 
-CRworld.df$Rate[CRworld.df$iso_a3=="ARM"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="AZE"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="BLR"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="EST"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="GEO"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="KAZ"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="KGZ"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="LVA"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="LTU"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="MDA"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="TJK"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="TKM"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="UKR"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="UZB"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
+CRworld.df$Rate[CRworld.df$iso_a3=="ARM"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="AZE"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="BLR"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="EST"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="GEO"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="KAZ"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="KGZ"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="LVA"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="LTU"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="MDA"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="TJK"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="TKM"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="UKR"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="UZB"]<-unique(cropsSR$Rate[cropsSR$Continent=="Eastern Europe"])
 
-CRworld.df$Rate[CRworld.df$iso_a3=="SRB"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="MNE"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="HRV"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="MKD"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="SVN"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
-CRworld.df$Rate[CRworld.df$iso_a3=="SVK"]<-unique(cropsSR$Rate[cropsSR$Continent=="Europe and Central Asia"])
+CRworld.df$Rate[CRworld.df$iso_a3=="SRB"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="MNE"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="HRV"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="MKD"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="SVN"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
+CRworld.df$Rate[CRworld.df$iso_a3=="SVK"]<-unique(cropsSR$Rate[cropsSR$Continent=="Southern Europe"])
 
-CRworld.df$Rate[CRworld.df$iso_a3=="SSD"]<-unique(cropsSR$Rate[cropsSR$Continent=="Africa"])
+CRworld.df$Rate[CRworld.df$iso_a3=="SSD"]<-unique(cropsSR$Rate[cropsSR$Continent=="East Africa"])
 
 #LIVESTOCK ADJUSTEDMENT FOR AGGREGATED COUNTRIES
 
 
-LSworld.df$Rate[LSworld.df$iso_a3=="ARM"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="AZE"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="BLR"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="EST"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="GEO"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="KAZ"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="KGZ"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="LVA"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="LTU"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="MDA"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="TJK"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="TKM"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="UKR"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="UZB"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
+LSworld.df$Rate[LSworld.df$iso_a3=="ARM"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="AZE"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="BLR"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="EST"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="GEO"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="LVA"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="LTU"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="MDA"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="UKR"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="UZB"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
 
-LSworld.df$Rate[LSworld.df$iso_a3=="SRB"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="MNE"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="HRV"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="MKD"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="SVN"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
-LSworld.df$Rate[LSworld.df$iso_a3=="SVK"]<-unique(livestockSR$Rate[livestockSR$Continent=="Europe and Central Asia"])
+LSworld.df$Rate[LSworld.df$iso_a3=="KAZ"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="KGZ"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="TJK"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="TKM"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="UZB"]<-unique(livestockSR$Rate[livestockSR$Continent=="Eastern Europe"])
 
-LSworld.df$Rate[LSworld.df$iso_a3=="SSD"]<-unique(livestockSR$Rate[livestockSR$Continent=="Africa"])
+LSworld.df$Rate[LSworld.df$iso_a3=="SRB"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="MNE"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="HRV"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="MKD"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="SVN"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+LSworld.df$Rate[LSworld.df$iso_a3=="SVK"]<-unique(livestockSR$Rate[livestockSR$Continent=="Southern Europe"])
+
+LSworld.df$Rate[LSworld.df$iso_a3=="SSD"]<-unique(livestockSR$Rate[livestockSR$Continent=="East Africa"])
 
 
 
@@ -7007,9 +6963,9 @@ ratelegend<-get_legend(mcrops)
 ratescombined2<-ggarrange(ratescombined, ratelegend , nrow=2, ncol=1, heights = c(1,0.1),font.label = list(size=12))
 ggsave(filename = "Shock ratesmap column2.tiff", device = "tiff", dpi=600, width=9, height = 20, units = "cm")
 
-ggsave(filename = "Shock rates only map.tiff", device = "tiff", dpi=600, width=18.3, height = 12.5, units = "cm")
-
-ggsave(filename = "Shock rates only map.pdf", device = pdf, dpi=600, width=18.3, height = 12.5, units = "cm")
+# ggsave(filename = "Shock rates only map.tiff", device = "tiff", dpi=600, width=18.3, height = 12.5, units = "cm")
+# 
+# ggsave(filename = "Shock rates only map.pdf", device = pdf, dpi=600, width=18.3, height = 12.5, units = "cm")
 
 # ratedriver1<-ggarrange(ratescol, driverscol, nrow = 1, ncol=2)
 # 
