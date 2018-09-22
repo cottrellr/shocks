@@ -9,6 +9,7 @@ output: html_document
 
 ```{r}
 library(randomForest)
+library(splitstackshape)
 library(plyr) # manipulation of data formatting
 library(dplyr) # maniuplation of data formatting
 library(sp) #spatial tool
@@ -4980,159 +4981,164 @@ aquaimg<-rasterGrob(aquaimg, interpolate = T)
 #Import shocks with drivers and tidy
 ```{r}
 
-shockdrivers <- read.csv("shocksanddrivers2.csv", header=T)
-shockdrivers <- shockdrivers[,1:11]
-names(shockdrivers)[11]<-"Category"
-shockdrivers$Country<-as.character(shockdrivers$Country)
-shockdrivers$Region<-as.character(shockdrivers$Region)
+#Original clean up
+# shockdrivers <- read.csv("shocksanddrivers2.csv", header=T)
+# shockdrivers <- shockdrivers[,1:11]
+# names(shockdrivers)[11]<-"Category"
+# shockdrivers$Country<-as.character(shockdrivers$Country)
+# shockdrivers$Region<-as.character(shockdrivers$Region)
+# 
+# #shockdrivers<-shockdrivers[shockdrivers$Country!="Haiti",]
+# #Replacements<-countrycode(shockdrivers$Country[shockdrivers$Region=="East Asia and Pacific"], origin = "country.name", destination = "continent", warn = T)
+# 
+# #shockdrivers$Region[shockdrivers$Region=="East Asia and Pacific"]<-Replacements
+# shockdrivers$Region[shockdrivers$Region=="Asia"]<-"East Asia"
+# shockdrivers$Region[shockdrivers$Country=="Iran (Islamic Republic of)"]<-"MENA"
+# shockdrivers$Region[shockdrivers$Country=="Syrian Arab Republic" ]<-"MENA" 
+# shockdrivers$Region[shockdrivers$Country=="Saudi Arabia" ]<-"MENA" 
+# shockdrivers$Region[shockdrivers$Country=="Turkey" ]<-"EuCA"
+# shockdrivers$Region[shockdrivers$Country=="St. Pierre and Miquelon" ]<-"EuCA"
+# 
+# shockdrivers$Country<-as.factor(shockdrivers$Country)
+# shockdrivers$Region<-as.factor(shockdrivers$Region)
+# 
+# 
+# #Take out not shocks 13 in total
+# shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock",]
+# shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock ",]
+# 
+# 
+# shockdrivers$Category <- as.character(shockdrivers$Category)
+# shockdrivers$Category[shockdrivers$Driver=="Unknown driver to carp production decline"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Driver=="Unknown"]<-"Unknown"
+# 
+# #Climate events
+# shockdrivers$Category[shockdrivers$Category=="Climate/ Weather"] <- "Climate/weather events"
+# shockdrivers$Category[shockdrivers$Category=="Climate/ Weather "] <- "Climate/weather events"
+# shockdrivers$Category[shockdrivers$Category=="Climate/weather"] <- "Climate/weather events"
+# shockdrivers$Category[shockdrivers$Category=="Climate/weather "] <- "Climate/weather events"
+# shockdrivers$Category[shockdrivers$Category=="Climate/ weather "] <- "Climate/weather events"
+# 
+# #Climate/weather & geopolitical/economic
+# shockdrivers$Category[shockdrivers$Category=="Economic and climate/weather "] <- "Climate/weather & geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="Climate/weather & economic  " ] <- "Climate/weather & geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="Geopolitical and climate/weather " ] <- "Climate/weather & geopolitical/economic events"
+# 
+# #Climate/weather and mismanagement
+# shockdrivers$Category[shockdrivers$Category=="Climate/weather and mismanagement "] <- "Climate/weather events & mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="Climate/ weather and mismanagement "] <- "Climate/weather events & mismanagement"
+# shockdrivers$Category[shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Sector=="Crops" & shockdrivers$Year==1996] <- "Mismanagement"
+# 
+# 
+# #Geopolitical/economic events
+# shockdrivers$Category[shockdrivers$Category=="Geopolitical " ] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="Economic" ] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="Geopolitical"] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="Economic " ] <- "Geopolitical/economic events"
+# 
+# 
+# 
+# #Mismanagement
+# shockdrivers$Category[shockdrivers$Category=="Mismanagement " ] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="Mismanagment " ] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="Mismanagment" ] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="MIsmanagement " ] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Country=="Antigua and Barbuda" & shockdrivers$Sector=="Fisheries" & shockdrivers$Year==1981] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="Overfishing and mismanagement"] <- "Mismanagement"
+# shockdrivers$Category[shockdrivers$Category=="From Gehpart " ] <- "Mismanagement"
+# 
+# 
+# #Mismanagement & policy change
+# shockdrivers$Category[shockdrivers$Category=="Mismanagment and policy change " ] <- "Mismanagement & policy change"
+# shockdrivers$Category[shockdrivers$Category=="Mismanagement and policy change "  ] <- "Mismanagement & policy change"
+# shockdrivers$Category[shockdrivers$Category=="Mismanagement and policy change"  ] <- "Mismanagement & policy change"                               
+# 
+# 
+# #policy change
+# shockdrivers$Category[shockdrivers$Category=="Policy change "  ] <- "Policy change"
+# 
+# 
+# #Mismanagement and geopolitical/economic events
+# shockdrivers$Category[shockdrivers$Category=="Mismanagement and geopolitical "  ] <- "Mismanagement & geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Category=="MIsmanagement and geopolitical "  ] <- "Mismanagement & geopolitical/economic events"
+# 
+# #Other - disease, pulse fisheries, geological events
+# shockdrivers$Category[shockdrivers$Category=="Biological " ] <- "Other"
+# shockdrivers$Category[shockdrivers$Category=="Biological" ] <- "Other"
+# shockdrivers$Category[shockdrivers$Category=="Geological " ] <- "Other"
+# shockdrivers$Category[shockdrivers$Category=="Geological" ] <- "Other"
+# 
+# #missing
+# shockdrivers$Category[shockdrivers$Country=="Sao Tome and Principe" & shockdrivers$Sector=="Livestock"] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Country=="Albania"] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Country=="Iraq" & shockdrivers$Sector=="Aquaculture"] <- "Geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Country=="Saint Lucia" & shockdrivers$Sector=="Aquaculture"] <- "Policy change"
+# shockdrivers$Category[shockdrivers$Category==""]<-"Geopolitical/economic events"
+# 
+# unique(shockdrivers$Category)
+# shockdrivers$Category <-as.factor(shockdrivers$Category)
+# levels(shockdrivers$Category)
+# 
+# shockdrivers$Category<-factor(shockdrivers$Category,levels(shockdrivers$Category)[c(2,3,1, 4, 6, 5, 7, 9, 8, 10)])
+# levels(shockdrivers$Category)
+# 
+# shockdrivers <-shockdrivers[shockdrivers$Sector!="",]
+# shockdrivers$Sector <-as.character(shockdrivers$Sector)
+# shockdrivers$Sector <- as.factor(shockdrivers$Sector)
+# shockdrivers$Sector <- factor(shockdrivers$Sector, levels(shockdrivers$Sector)[c(2,4,3,1)])
+# 
+# 
+# #update with Oceania
+# 
+# shockdrivers[shockdrivers$Region=="East Asia and Pacific",]
+# 
+# shockdrivers$Recovery2<-shockdrivers$Recovery
+# shockdrivers$Year<-as.numeric(shockdrivers$Year)
+# shockdrivers$Recovery2[is.na(shockdrivers$Recovery2)]<-2013-shockdrivers$Year[is.na(shockdrivers$Recovery2)]
+# shockdrivers$Recovery2[shockdrivers$Recovery2==0]<-1
+# levels(shockdrivers$Region)[levels(shockdrivers$Region)=="CaLA"]<-"LACa"
+# 
+# #Final touch ups from supplementary review of drivers
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Bermuda"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Comoros"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Democratic People's Republic of Korea"]<-"Climate/weather events & mismanagement"
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Guam"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Libya"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Saudi Arabia"]<-"Policy change"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Belize"]<-"Unknown"
+# #shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="China, Macao SAR"]<-"Other"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Guam"]<-"Climate/weather & geopolitical/economic events"
+# 
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Year==1997]<-"Climate/weather events & mismanagement"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Greenland"]<-"Mismanagement & policy change"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Malawi"]<-"Climate/weather & geopolitical/economic events"
+# #shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Republic of Korea"]<-"Other"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sao Tome and Principe"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sri Lanka" & shockdrivers$Year==1998]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Timor-Leste"]<-"Climate/weather & geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Sector=="Fisheries" & shockdrivers$Country=="Solomon Islands"]<-"Mismanagement & geopolitical/economic events"
+# shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Jamaica"]<-"Unknown"
+# shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Saint Lucia"]<-"Unknown"
+# 
+# 
+# 
+# #Exclude shocks where not a shock - gradual decline before a big jump
+# shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Réunion"),]
+# shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Somalia" & shockdrivers$Year==1994),]
+# 
+# #Rescale recovery times between 0 and 1 for chord plots
+# 
+# shockdrivers$Scaled.recovery<-NA
+# shockdrivers$Scaled.recovery<-(shockdrivers$Recovery2-min(shockdrivers$Recovery2))/(max(shockdrivers$Recovery2)-min(shockdrivers$Recovery2))
+# shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
+# 
+# 
+# 
+# write.csv(shockdrivers, file = "Shocks and drivers tidy3.csv", row.names = F)
 
-#shockdrivers<-shockdrivers[shockdrivers$Country!="Haiti",]
-#Replacements<-countrycode(shockdrivers$Country[shockdrivers$Region=="East Asia and Pacific"], origin = "country.name", destination = "continent", warn = T)
-
-#shockdrivers$Region[shockdrivers$Region=="East Asia and Pacific"]<-Replacements
-shockdrivers$Region[shockdrivers$Region=="Asia"]<-"East Asia"
-shockdrivers$Region[shockdrivers$Country=="Iran (Islamic Republic of)"]<-"MENA"
-shockdrivers$Region[shockdrivers$Country=="Syrian Arab Republic" ]<-"MENA" 
-shockdrivers$Region[shockdrivers$Country=="Saudi Arabia" ]<-"MENA" 
-shockdrivers$Region[shockdrivers$Country=="Turkey" ]<-"EuCA"
-shockdrivers$Region[shockdrivers$Country=="St. Pierre and Miquelon" ]<-"EuCA"
-
-shockdrivers$Country<-as.factor(shockdrivers$Country)
-shockdrivers$Region<-as.factor(shockdrivers$Region)
 
 
-#Take out not shocks 13 in total
-shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock",]
-shockdrivers <- shockdrivers[shockdrivers$Driver!="Not a shock ",]
-
-
-shockdrivers$Category <- as.character(shockdrivers$Category)
-shockdrivers$Category[shockdrivers$Driver=="Unknown driver to carp production decline"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Driver=="Unknown"]<-"Unknown"
-
-#Climate events
-shockdrivers$Category[shockdrivers$Category=="Climate/ Weather"] <- "Climate/weather events"
-shockdrivers$Category[shockdrivers$Category=="Climate/ Weather "] <- "Climate/weather events"
-shockdrivers$Category[shockdrivers$Category=="Climate/weather"] <- "Climate/weather events"
-shockdrivers$Category[shockdrivers$Category=="Climate/weather "] <- "Climate/weather events"
-shockdrivers$Category[shockdrivers$Category=="Climate/ weather "] <- "Climate/weather events"
-
-#Climate/weather & geopolitical/economic
-shockdrivers$Category[shockdrivers$Category=="Economic and climate/weather "] <- "Climate/weather & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="Climate/weather & economic  " ] <- "Climate/weather & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="Geopolitical and climate/weather " ] <- "Climate/weather & geopolitical/economic events"
-
-#Climate/weather and mismanagement
-shockdrivers$Category[shockdrivers$Category=="Climate/weather and mismanagement "] <- "Climate/weather events & mismanagement"
-shockdrivers$Category[shockdrivers$Category=="Climate/ weather and mismanagement "] <- "Climate/weather events & mismanagement"
-shockdrivers$Category[shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Sector=="Crops" & shockdrivers$Year==1996] <- "Mismanagement"
-
-
-#Geopolitical/economic events
-shockdrivers$Category[shockdrivers$Category=="Geopolitical " ] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="Economic" ] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="Geopolitical"] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="Economic " ] <- "Geopolitical/economic events"
-
-
-
-#Mismanagement
-shockdrivers$Category[shockdrivers$Category=="Mismanagement " ] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Category=="Mismanagment " ] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Category=="Mismanagment" ] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Category=="MIsmanagement " ] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Country=="Antigua and Barbuda" & shockdrivers$Sector=="Fisheries" & shockdrivers$Year==1981] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Category=="Overfishing and mismanagement"] <- "Mismanagement"
-shockdrivers$Category[shockdrivers$Category=="From Gehpart " ] <- "Mismanagement"
-
-
-#Mismanagement & policy change
-shockdrivers$Category[shockdrivers$Category=="Mismanagment and policy change " ] <- "Mismanagement & policy change"
-shockdrivers$Category[shockdrivers$Category=="Mismanagement and policy change "  ] <- "Mismanagement & policy change"
-shockdrivers$Category[shockdrivers$Category=="Mismanagement and policy change"  ] <- "Mismanagement & policy change"                               
-
-
-#policy change
-shockdrivers$Category[shockdrivers$Category=="Policy change "  ] <- "Policy change"
-
-
-#Mismanagement and geopolitical/economic events
-shockdrivers$Category[shockdrivers$Category=="Mismanagement and geopolitical "  ] <- "Mismanagement & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Category=="MIsmanagement and geopolitical "  ] <- "Mismanagement & geopolitical/economic events"
-
-#Other - disease, pulse fisheries, geological events
-shockdrivers$Category[shockdrivers$Category=="Biological " ] <- "Other"
-shockdrivers$Category[shockdrivers$Category=="Biological" ] <- "Other"
-shockdrivers$Category[shockdrivers$Category=="Geological " ] <- "Other"
-shockdrivers$Category[shockdrivers$Category=="Geological" ] <- "Other"
-
-#missing
-shockdrivers$Category[shockdrivers$Country=="Sao Tome and Principe" & shockdrivers$Sector=="Livestock"] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Country=="Albania"] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Country=="Iraq" & shockdrivers$Sector=="Aquaculture"] <- "Geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Country=="Saint Lucia" & shockdrivers$Sector=="Aquaculture"] <- "Policy change"
-shockdrivers$Category[shockdrivers$Category==""]<-"Geopolitical/economic events"
-
-unique(shockdrivers$Category)
-shockdrivers$Category <-as.factor(shockdrivers$Category)
-levels(shockdrivers$Category)
-
-shockdrivers$Category<-factor(shockdrivers$Category,levels(shockdrivers$Category)[c(2,3,1, 4, 6, 5, 7, 9, 8, 10)])
-levels(shockdrivers$Category)
-
-shockdrivers <-shockdrivers[shockdrivers$Sector!="",]
-shockdrivers$Sector <-as.character(shockdrivers$Sector)
-shockdrivers$Sector <- as.factor(shockdrivers$Sector)
-shockdrivers$Sector <- factor(shockdrivers$Sector, levels(shockdrivers$Sector)[c(2,4,3,1)])
-
-
-#update with Oceania
-
-shockdrivers[shockdrivers$Region=="East Asia and Pacific",]
-
-shockdrivers$Recovery2<-shockdrivers$Recovery
-shockdrivers$Year<-as.numeric(shockdrivers$Year)
-shockdrivers$Recovery2[is.na(shockdrivers$Recovery2)]<-2013-shockdrivers$Year[is.na(shockdrivers$Recovery2)]
-shockdrivers$Recovery2[shockdrivers$Recovery2==0]<-1
-levels(shockdrivers$Region)[levels(shockdrivers$Region)=="CaLA"]<-"LACa"
-
-#Final touch ups from supplementary review of drivers
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Bermuda"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Comoros"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Democratic People's Republic of Korea"]<-"Climate/weather events & mismanagement"
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Guam"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Libya"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Crops" & shockdrivers$Country=="Saudi Arabia"]<-"Policy change"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Belize"]<-"Unknown"
-#shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="China, Macao SAR"]<-"Other"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Guam"]<-"Climate/weather & geopolitical/economic events"
-
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Democratic People's Republic of Korea" & shockdrivers$Year==1997]<-"Climate/weather events & mismanagement"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Greenland"]<-"Mismanagement & policy change"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Malawi"]<-"Climate/weather & geopolitical/economic events"
-#shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Republic of Korea"]<-"Other"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sao Tome and Principe"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Sri Lanka" & shockdrivers$Year==1998]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Timor-Leste"]<-"Climate/weather & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Sector=="Fisheries" & shockdrivers$Country=="Solomon Islands"]<-"Mismanagement & geopolitical/economic events"
-shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Jamaica"]<-"Unknown"
-shockdrivers$Category[shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Saint Lucia"]<-"Unknown"
-
-
-
-#Exclude shocks where not a shock - gradual decline before a big jump
-shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Aquaculture" & shockdrivers$Country=="Réunion"),]
-shockdrivers<-shockdrivers[!(shockdrivers$Sector=="Livestock" & shockdrivers$Country=="Somalia" & shockdrivers$Year==1994),]
-
-#Rescale recovery times between 0 and 1 for chord plots
-
-shockdrivers$Scaled.recovery<-NA
-shockdrivers$Scaled.recovery<-(shockdrivers$Recovery2-min(shockdrivers$Recovery2))/(max(shockdrivers$Recovery2)-min(shockdrivers$Recovery2))
-shockdrivers$Scaled.recovery[shockdrivers$Scaled.recovery==0]<-0.01
-
-
-
-write.csv(shockdrivers, file = "Shocks and drivers tidy3.csv", row.names = F)
+#updated shocks and drivers
 
 
 N_Africa <- c("Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia")
@@ -5200,7 +5206,7 @@ S_Europe_codes <- countrycode(S_Europe, origin = "country.name", destination="is
 S_Europe_codes[is.na(S_Europe_codes)] <- "BIH"
 W_Europe_codes <- countrycode(W_Europe, origin = "country.name", destination="iso3c", warn=T)
 
-
+sub_categories <- fread("subcategories.csv", header = T)
 
 shockdrivers <- 
   fread("Shocks and drivers tidy3.csv", header=T) %>% 
@@ -5232,7 +5238,8 @@ shockdrivers <-
                                Country %in% N_Europe ~ "Northern Europe",
                                Country %in% E_Europe ~ "Eastern Europe",
                                Country %in% S_Europe ~ "Southern Europe",
-                               Country %in% W_Europe ~ "Western Europe"))
+                               Country %in% W_Europe ~ "Western Europe")) %>% 
+  mutate(Sub_Category = sub_categories$SubCategory)
 
 
 
@@ -5984,27 +5991,69 @@ sd(crop_shocks$Aqua_change[!is.na(crop_shocks$Aqua_change)])
 
 ```
 
-#Random forest - what determines mutliple shocks in one year period
+#Random forest - what determines mutliple shocks in a given period
 
 ```{r}
 
-# HDI <- fread("Human development index (HDI) (1).csv", header=T) %>% 
-#   gather(key = Year, value=HDI, -c(`HDI Rank (2015)`, Country)) %>% 
-#   arrange(Country) %>% 
-#   mutate(Codes = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>% 
-#   mutate(Year = as.integer(Year))
-# 
-# HDI_Countries <- split(unique(HDI$Country), unique(HDI$Country))
-# 
-# HDI_codes <- (lapply(HDI_Countries, function(target_country){
-#   hdi_local <- HDI$HDI[HDI$Country==target_country]
-#   hdi_local[is.na(hdi_local)] <- min(hdi_local[!is.na(hdi_local)])
-#   return(hdi_local)
-# })
-# )
-#   
-# HDI <- HDI %>% 
-#   mutate(HDI = unlist(HDI_codes))
+#Using possible predictor variables of why multiple shocks co-occur
+
+###Hypotheses
+# HDI (development level) - more developed countries maybe able to buffer mutliple shocks through subsidies or other economic tools - and less developed nations tend to have a greater dependence on food production for livelihoods
+# Category of driver - some drivers may be more prone to affect multiple sectors in general (e.g. economic turndown)
+#SubCategory of driver - more specificity may help the predictive power of the above
+# Size of the shock - shocks that are bigger may be from drivers that may affect multiplpe sectors and be more flexible than rigid categories assigned to drivers
+#Recovery time - for shocks with long recovery times, these may represent step changes in the food system, such as the USSR dissolution or shifts of pressure between sectors e.g Brashares 2004
+#Region - some regions are more shock prone than others 
+#Subregion - as above but with more specificity - shocks may spillover into neighbouring countries
+#Land-locked - war and droughts are more likely to move across multiple sectors if a country is dependent on inland systems for aquatic food too - compared to the buffering provided by marine systems
+#Land-area - in smaller countries one shock from war or drought may impact multiple sectors such as crops, livestock and fisheries or aquaculture
+
+
+
+#HDI data
+
+HDI <- fread("Human development index (HDI) (1).csv", header=T) %>%
+  gather(key = Year, value=HDI, -c(`HDI Rank (2015)`, Country)) %>%
+  arrange(Country) %>%
+  mutate(Codes = countrycode(Country, origin = "country.name", destination = "iso3c", warn=T)) %>%
+  mutate(Year = as.integer(Year))
+
+
+#fill in HDI NAs from 1990 onwards wirth minimum NAs
+
+HDIcountries <- HDI$Codes
+HDI_Countries <- split(unique(HDI$Country), unique(HDI$Country))
+
+HDI_codes <- (lapply(HDI_Countries, function(target_country){
+  hdi_local <- HDI$HDI[HDI$Country==target_country]
+  hdi_local[is.na(hdi_local)] <- min(hdi_local[!is.na(hdi_local)])
+  return(hdi_local)
+})
+)
+
+HDI <- HDI %>%
+  mutate(HDI = unlist(HDI_codes))
+
+
+#Create vector that assigns lowest HDI values for shocks before 1990 (HDI data start) 
+HDIs <- unlist(lapply(shock_countries_list, function(target_shock){
+  Year <- target_shock$Year
+  Codes <- target_shock$Codes
+  if (Codes %in% HDIcountries & Year %in% 1990:2015){
+    HDI <- HDI$HDI[HDI$Codes==Codes & HDI$Year==Year]
+    return(HDI)
+  } else if (Codes %in% HDIcountries & !(Year %in% 1990:2015)){
+    HDI <- min(HDI$HDI[HDI$Codes==Codes])
+    return(HDI)
+  } else {
+    HDI <- NA
+    return(HDI)
+  }
+}))
+
+
+
+
 
 #land area data
 land_area <- fread("land_area.csv", header=T) %>% 
@@ -6023,10 +6072,14 @@ land_locked <- fread("landlockedness.csv", header=T) %>%
   mutate(Codes = countrycode(Country, origin= "country.name", destination = "iso3c", warn=T)) %>% 
   na.omit()
 
-#Countries where double jeopardies happened
+#Countries where double/triple jeopardies happened
 double_countries <-  unique(synchrony$Country[synchrony$nn>1])
 double_codes <- countrycode(double_countries, origin = "country.name", destination = "iso3c", warn=T)
 double_codes[is.na(double_codes)] <- "VIN"
+
+
+
+shock_countries_list <- split(shockdrivers, seq(nrow(shockdrivers)))
 
 
 
@@ -6053,43 +6106,81 @@ shockdrivers2 <-  shockdrivers %>%
                           Country.x=="Martinique" ~ 1128,
                           Country.x=="Montserrat" ~ 102,
                           T ~ Area)) %>% 
+  mutate(HDI = HDIs) %>% 
+  mutate(HDI_class = case_when(HDI>=0.8~"Very high",
+                               HDI>=0.7 & HDI<0.8 ~ "High",
+                               HDI>=0.55 & HDI<0.7 ~ "Medium",
+                               HDI<0.55~"Low",
+                               is.na(HDI)~"Unclassified")) %>% 
+  select(-HDI) %>% 
   mutate(Multiple_sectors = case_when(Codes %in% double_codes ~ "Yes",
-                                      T ~ "No")) %>% 
-  mutate_if(sapply(shockdrivers2, is.character), as.factor)
+                                      T ~ "No")) %>%
+  mutate(Multiple_sectors = case_when(Country.x == "N. Korea" & Year <1993 ~ "No",
+                                      Country.x == "Maldives" & Year <2003 ~ "No",
+                                      Country.x == "Iraq" & Year <2008 ~ "No",
+                                      Country.x == "Burundi" & Year <2008 ~ "No",
+                                      Country.x == "Hungary" & Year <1998 ~ "No",
+                                      T~ Multiple_sectors)) %>% 
+  mutate_if(sapply(., is.character), as.factor)
+
+
+
+
+#split data frame keeping equal distribution of multi sector instances 
+set.seed(90)
+split <- stratified(shockdrivers2, "Multiple_sectors", size=0.5, replace=FALSE, bothSets=TRUE)
+training_set <- arrange(split[[1]])
+valid_set <- split[[2]]
 
 
 
 #Random forest
-
-# sample from dataset
-set.seed(10)
-
-sample_size <-  floor(nrow(shockdrivers2)/2)
-indices <- sample(1:nrow(shockdrivers2), size=sample_size)
-
-#separate training and validation set
-
-training_set <- shockdrivers2[indices,]
-val_set <- shockdrivers2[-indices,]
+expl_variables <- paste(names(shockdrivers2)[-c(1,2,6,12,14)], collapse = "+")
+formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
+(rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
+varImpPlot(rf_classifier)
+prediction <- predict(rf_classifier, valid_set[,-14])
+table(observed=valid_set$Multiple_sectors,predicted=(prediction))
+match <- (prediction == valid_set$Multiple_sectors)
+length(match[match==FALSE])/length(prediction)
 
 
+#keep only subcategory & area 
+expl_variables <- paste(names(shockdrivers2)[c(7,10)], collapse = "+")
+formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
+(rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
+varImpPlot(rf_classifier)
+prediction <- predict(rf_classifier, valid_set[,-14])
+table(observed=valid_set$Multiple_sectors,predicted=(prediction))
+match <- (prediction == valid_set$Multiple_sectors)
+length(match[match==FALSE])/length(prediction)
 
 
+#only area
+expl_variables <- paste(names(shockdrivers2)[c(12)], collapse = "+")
+formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
+(rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
+prediction <- predict(rf_classifier, valid_set[,-14])
+table(observed=valid_set$Multiple_sectors,predicted=(prediction))
+match <- (prediction == valid_set$Multiple_sectors)
+length(match[match==FALSE])/length(prediction)
 
-#perform training
-rf_classifier = randomForest(Multiple_sectors~SubRegion+Area, data = training_set, ntree=500, mtry=2)
+
+shockdrivers2 %>% 
+  group_by(HDI_class, Multiple_sectors) %>% 
+  count() %>% 
+  ggplot(aes(x=HDI_class, y=n, fill=Multiple_sectors))+geom_bar(stat="identity",position = "dodge")
 
 
-shockdrivers2
-
+```
 
 exp(5)
 #subregion #category #land.area #sector #shock.size #recovery.time
 
 
-varImpPlot(rf_classifier)
 
-prediction_for_table <- predict(rf_classifier,validation1[,-5])
+
+prediction_for_table <- predict(rf_classifier,val_set[,-5])
 table(observed=validation1[,5],predicted=prediction_for_table)
 
 library(ROCR) # roc curve and compute the area underneath
@@ -6179,6 +6270,9 @@ plot(3:8,a)
 
 
 shockdriver
+
+shock_countries_list[[10]]
+
 ```
   
   
