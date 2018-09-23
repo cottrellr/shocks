@@ -8,6 +8,7 @@ output: html_document
 ###LIBRARIES
 
 ```{r}
+library(party)
 library(randomForest)
 library(splitstackshape)
 library(plyr) # manipulation of data formatting
@@ -5991,7 +5992,7 @@ sd(crop_shocks$Aqua_change[!is.na(crop_shocks$Aqua_change)])
 
 ```
 
-#Random forest - what determines mutliple shocks in a given period
+#Random forest - what determines if multiple shocks occur with a given period
 
 ```{r}
 
@@ -6034,6 +6035,7 @@ HDI_codes <- (lapply(HDI_Countries, function(target_country){
 HDI <- HDI %>%
   mutate(HDI = unlist(HDI_codes))
 
+shock_countries_list <- split(shockdrivers, seq(nrow(shockdrivers)))
 
 #Create vector that assigns lowest HDI values for shocks before 1990 (HDI data start) 
 HDIs <- unlist(lapply(shock_countries_list, function(target_shock){
@@ -6077,9 +6079,6 @@ double_countries <-  unique(synchrony$Country[synchrony$nn>1])
 double_codes <- countrycode(double_countries, origin = "country.name", destination = "iso3c", warn=T)
 double_codes[is.na(double_codes)] <- "VIN"
 
-
-
-shock_countries_list <- split(shockdrivers, seq(nrow(shockdrivers)))
 
 
 
@@ -6132,32 +6131,18 @@ split <- stratified(shockdrivers2, "Multiple_sectors", size=0.5, replace=FALSE, 
 training_set <- arrange(split[[1]])
 valid_set <- split[[2]]
 
-
-
-#Random forest
-expl_variables <- paste(names(shockdrivers2)[-c(1,2,6,12,14)], collapse = "+")
+#Establish importance variables through cForest
+expl_variables <- paste(names(shockdrivers2)[-c(1,2,6,14)], collapse = "+")
 formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
-(rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
-varImpPlot(rf_classifier)
-prediction <- predict(rf_classifier, valid_set[,-14])
-table(observed=valid_set$Multiple_sectors,predicted=(prediction))
-match <- (prediction == valid_set$Multiple_sectors)
-length(match[match==FALSE])/length(prediction)
+set.seed(90)
+rfobject <- cforest(formula = formula, data = training_set, controls =   cforest_control(mtry = 3, ntree = 500,replace = F,teststat = "quad",testtype = "Univ", mincriterion = 0))
+varimp_cforest <-  as_vector(sort(varimp(rfobject)))
+importance <- data_frame(Variable=names(varimp_cforest), Perm_importance = varimp_cforest)
+ggplot(importance, aes(x=reorder(Variable, Perm_importance), y=Perm_importance))+geom_point()
 
 
-#keep only subcategory & area 
-expl_variables <- paste(names(shockdrivers2)[c(7,10)], collapse = "+")
-formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
-(rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
-varImpPlot(rf_classifier)
-prediction <- predict(rf_classifier, valid_set[,-14])
-table(observed=valid_set$Multiple_sectors,predicted=(prediction))
-match <- (prediction == valid_set$Multiple_sectors)
-length(match[match==FALSE])/length(prediction)
 
-
-#only area
-expl_variables <- paste(names(shockdrivers2)[c(12)], collapse = "+")
+expl_variables <- paste(names(shockdrivers2)[c(10,4,7)], collapse = "+")
 formula <- as.formula(paste(names(shockdrivers2)[14], expl_variables, sep="~"))
 (rf_classifier = randomForest(formula, data = training_set, ntree=500, type="classification", importance=T))
 prediction <- predict(rf_classifier, valid_set[,-14])
@@ -6166,117 +6151,15 @@ match <- (prediction == valid_set$Multiple_sectors)
 length(match[match==FALSE])/length(prediction)
 
 
-shockdrivers2 %>% 
-  group_by(HDI_class, Multiple_sectors) %>% 
-  count() %>% 
-  ggplot(aes(x=HDI_class, y=n, fill=Multiple_sectors))+geom_bar(stat="identity",position = "dodge")
 
 
-```
+
 
 exp(5)
 #subregion #category #land.area #sector #shock.size #recovery.time
 
 
-
-
-prediction_for_table <- predict(rf_classifier,val_set[,-5])
-table(observed=validation1[,5],predicted=prediction_for_table)
-
-library(ROCR) # roc curve and compute the area underneath
-
-prediction_for_roc_curve <- predict(rf_classifier,validation1[,-5],type="prob")
-
-pretty_colours <- c("#F8766D","#00BA38","#619CFF")
-# Specify the different classes 
-classes <- levels(validation1$Species)
-# For each class
-for (i in 1:length(classes)){
-  # Define which observations belong to class[i]
-  true_values <- ifelse(validation1[,5]==classes[i],1,0)
-  # Assess the performance of classifier for class[i]
-  pred <- prediction(prediction_for_roc_curve[,i],true_values)
-  perf <- performance(pred, "tpr", "fpr")
-  if (i==1)
-  {
-    plot(perf,main="ROC Curve",col=pretty_colours[i]) 
-  }
-  else
-  {
-    plot(perf,main="ROC Curve",col=pretty_colours[i],add=TRUE) 
-  }
-  # Calculate the AUC and print it to screen
-  auc.perf <- performance(pred, measure = "auc")
-  print(auc.perf@y.values)
-}
-
-
-
-
-
-
-
-?sample
-
-set.seed(100)
-train <- sample(nrow(data1), 0.7*nrow(data1), replace = TRUE)
-TrainSet <- data1[train,]
-ValidSet <- data1[-train,]
-summary(TrainSet)
-summary(ValidSet)
-
-
-model1 <- randomForest(Condition ~ ., data = TrainSet, importance = TRUE)
-model1
-
-
-# Fine tuning parameters of Random Forest model
-model2 <- randomForest(Condition ~ ., data = TrainSet, ntree = 500, mtry = 6, importance = TRUE)
-model2
-
-
-predTrain <- predict(model2, TrainSet, type = "class")
-# Checking classification accuracy
-table(predTrain, TrainSet$Condition)  
-
-
-
-# Predicting on Validation set
-predValid <- predict(model2, ValidSet, type = "class")
-# Checking classification accuracy
-mean(predValid == ValidSet$Condition)                    
-table(predValid,ValidSet$Condition)
-
-
-# To check important variables
-importance(model2)       
-varImpPlot(model2)        
-
-importance(model2)
-varImpPlot(model2)
-
-
-a=c()
-i=5
-for (i in 3:8) {
-  model3 <- randomForest(Condition ~ ., data = TrainSet, ntree = 500, mtry = i, importance = TRUE)
-  predValid <- predict(model3, ValidSet, type = "class")
-  a[i-2] = mean(predValid == ValidSet$Condition)
-}
- 
-a
- 
-plot(3:8,a)
-
-
-shockdriver
-
-shock_countries_list[[10]]
-
 ```
-  
-  
-  
 
 
 #Figure 1 - MAPPING SHOCK RATES 
@@ -8447,19 +8330,56 @@ ggsave(filename = "Figure 1 - Shock rates over time.pdf", device = pdf, dpi=600,
 
 
 ```{r}
+
+legend <- ggplot()+
+  scale_x_continuous(limits=c(0,0.5))+
+  scale_y_continuous(limits=c(0.2,1))+
+  theme(panel.background = element_rect(fill = "transparent", colour="transparent"),
+        panel.border = element_rect(fill = "transparent", colour="transparent"),
+        plot.background = element_rect(fill = "transparent", colour="transparent"),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())+
+  annotate("segment", x = 0.0, xend = 0.2, y = 0.9, yend = 0.9, colour="firebrick", size=0.8)+
+  annotate("segment", x = 0.0, xend = 0.2, y = 0.7, yend = 0.7, colour="black", size=0.8)+
+  annotate("segment", x = 0.0, xend = 0.2, y = 0.5, yend = 0.5, colour="dodgerblue", size=0.8)+
+  annotate("segment", x = 0.0, xend = 0.2, y = 0.3, yend = 0.3, colour="grey50", size=0.8)+
+  annotation_custom(cropimg, xmin = 0.3 ,xmax = 0.5, ymin = 0.8, ymax=1.1)+
+  annotation_custom(cowimg, xmin = 0.3 ,xmax = 0.5, ymin = 0.65, ymax=0.8)+
+  annotation_custom(fishingimg, xmin = 0.3 ,xmax = 0.5, ymin = 0.38, ymax=0.63)+
+  annotation_custom(aquaimg, xmin = 0.3 ,xmax = 0.5, ymin = 0.2, ymax=0.36)+
+  # annotate("text", x=0.2, y=0.9, label="Crop production", size=4.9, hjust=0)+
+  # annotate("text", x=0.2, y=0.7, label="Livestock production", size=4.9, hjust=0)+
+  # annotate("text", x=0.2, y=0.5, label="Fisheries landings", size=4.9, hjust=0)+
+  # annotate("text", x=0.2, y=0.3, label="Aquaculture production", size=4.9, hjust=0)+
+  ggsave("legend.png", device = "png", dpi=300, width=3, height = 4, units="cm", bg="transparent")
+
+
+legend <- readPNG("legend.png")
+legend <- rasterGrob(legend)
+
+
+years <- 1961:2013
+
 Dom<-crops[crops$Country=="Dominica" & crops$Item=="Fruit excl Melons,Total",]
 Dom<-Dom[,c(4,6)]
 Dom$Fisheries <-aggfisheries$Value[aggfisheries$Country=="Dominica"]
 Dom$Year <- as.numeric(Dom$Year)
 
 
-cols<-c("Fisheries landings" ="dodgerblue", "Fruit production"="firebrick")
+
+
+
+
+
+cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="black", "Aquaculture production")
 
 p9<-ggplot(data = Dom, aes(x=Year))+
   #geom_point(aes(y=(Value-mean(Value))/sd(Value)), colour="firebrick")+
-  geom_line(aes(y=(Value-mean(Value))/sd(Value)), size=0.7,colour="firebrick")+
+  geom_line(aes(y=(Value-mean(Value))/sd(Value),colour="Crop production"), size=0.7)+
   #geom_point(aes(y=((Fisheries-mean(Fisheries))/sd(Fisheries))), colour="dodgerblue")+
-  geom_line(aes(y=((Fisheries-mean(Fisheries))/sd(Fisheries))), size=0.7, colour="dodgerblue")+
+  geom_line(aes(y=((Fisheries-mean(Fisheries))/sd(Fisheries)), colour="Fisheries landings"), size=0.7)+
   scale_x_continuous(limits = c(1960, 1995))+
   scale_y_continuous(limits=c(-2.5, 3.2))+
   theme_bw()+
@@ -8473,12 +8393,19 @@ p9<-ggplot(data = Dom, aes(x=Year))+
   geom_vline(xintercept = 1983, lty=2)+
   annotate("text", x = 1969, y = 1.8, label = "Hurricane David", size=2.7)+
   geom_segment(aes(x = 1976 , y = 1.8 , xend =1978.5 , yend = 1.8), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
+  #annotate("text", x = 1963, y = 3, label = "bold(Dominica)", size=3, parse=T)+
   annotate("text", x = 1970, y = -2, label = "Stock collapse", size=2.7)+
   geom_segment(aes(x = 1976 , y = -2 , xend =1982.5 , yend = -2), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
-  labs(y="")#+
-  scale_colour_manual("", values=cols)
+  labs(y="Normalised production")+
+  scale_colour_manual("", values=cols2)+
+  guides(colour=F)+
+  ggsave("Dominica production.tiff", device = "tiff",dpi = 600, width = 8.9, height = 6, units = "cm")
   
   #annotate("text", x = 1972, y = 1.2, label = "Hurricane David")+
+
+  
+
+  
   
 afgfish<-aggfisheries[,c(1,2,6,7)]
 afg<-cbind.data.frame(years, aggcrops$Value[aggcrops$Country=="Afghanistan"], agglivestock$Value[agglivestock$Country=="Afghanistan"], afgfish$Value[afgfish$Country=="Afghanistan"])
@@ -8489,7 +8416,7 @@ names(afg)[3]<-"Livestock"
 names(afg)[4]<-"Fisheries"
 afg$Year <-as.numeric(afg$Year)
 
-cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="grey50")
+cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="black", "Aquaculture production"=="grey50")
 
 p10<-ggplot(data=afg, aes(x=Year))+
   geom_line(aes(y=(Crops-mean(Crops))/sd(Crops), colour="Crop production"), size=0.7)+
@@ -8500,6 +8427,8 @@ p10<-ggplot(data=afg, aes(x=Year))+
   scale_colour_manual("", values = cols2)+
   theme_bw()+
   theme(panel.grid = element_blank(),
+        axis.title.x = element_blank(),
+        #axis.title.y = element_blank(),
         legend.position = c(0.27, 0.9), 
         legend.text = element_text(size = 8),
         legend.key.size =  unit(4, "mm"),
@@ -8507,17 +8436,77 @@ p10<-ggplot(data=afg, aes(x=Year))+
   geom_vline(xintercept = 2000, lty=2)+
   labs(y=bquote(Normalised~production))+
   annotate("rect", xmin = 2000, xmax = 2002, fill="ivory3", colour=NA, ymin=-Inf, ymax=Inf, alpha=0.3)+
+  #annotate("text", x = 1984, y = 3.2, label = "bold(Afghanistan)", size=3, parse=T)+
   annotate("text", x = 1991.5, y = -2.1, label = "Drought onset", size=2.7)+
-  geom_segment(aes(x = 1997 , y = -2.1 , xend =1999.5 , yend = -2.1), size=0.5, arrow = arrow(length = unit(0.2, "cm")))
-
-ggarrange(p10,p9, labels=c("a", "b"), ncol=2, nrow = 1)
-ggsave(filename = "Tradeoffs and synergies2.tiff", device = "tiff", dpi = 600, width=18, height=6, units = "cm")
-
-ggsave(filename = "Tradeoffs and synergies2.pdf", device = pdf, dpi = 600, width=18, height=6, units = "cm")
+  annotation_custom()
+  geom_segment(aes(x = 1997 , y = -2.1 , xend =1999.5 , yend = -2.1), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
+  guides(colour=F)+
+  ggsave("Afghan production.tiff", device="tiff", dpi=600, width = 8.9, height = 6, units = "cm")
 
 
+Kuwait <-  data_frame(Year = 1961:2013, Crops = aggcrops$Value[aggcrops$Country=="Kuwait"], Livestock = agglivestock$Value[agglivestock$Country=="Kuwait"], Fisheries = aggfisheries$Value[aggfisheries$Country=="Kuwait"])
 
-library(ggplot2)
+p11 <- 
+  ggplot(Kuwait, aes(x=Year))+
+  geom_line(aes(y=(Crops-mean(Crops))/sd(Crops), colour="Crop production"), size=0.7)+
+  geom_line(aes(y=(Livestock-mean(Livestock))/sd(Livestock), colour="Livestock production"), size=0.7)+
+  geom_line(aes(y=(Fisheries-mean(Fisheries))/sd(Fisheries), colour="Fisheries landings"), size=0.7)+
+  scale_x_continuous(limits=c(1960,2005))+
+  scale_y_continuous()+
+  scale_colour_manual("", values = cols2)+
+  geom_vline(xintercept = 1991, lty=2)+
+  labs(y=bquote(Normalised~production))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = c(0.27, 0.9), 
+        legend.text = element_text(size = 8),
+        legend.key.size =  unit(4, "mm"),
+        legend.background = element_blank(),
+        axis.title = element_text(size=10))+
+  annotate("text", x = 1981.5, y = -1.9, label = "1st Gulf War", size=2.7)+
+  geom_segment(aes(x = 1987 , y = -1.9 , xend =1990.5 , yend = -1.9), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
+  annotation_custom(legend, xmin=1960, xmax = 1972.5, ymin=0.4, ymax = 3.3)+
+  guides(colour=F)+
+  ggsave("Kuwait production.tiff", device="tiff", dpi=600, width = 8.9, height = 6, units="cm")
+
+
+Ecuador <-  data_frame(Year = 1961:2013, Crops = aggcrops$Value[aggcrops$Country=="Ecuador"], Fisheries = aggfisheries$Value[aggfisheries$Country=="Ecuador"], Aquaculture = aggaqua$Value[aggaqua$Country=="Ecuador"])
+
+
+p12 <- 
+  ggplot(Ecuador, aes(x=Year))+
+  geom_line(aes(y=(Crops-mean(Crops))/sd(Crops), colour="Crop production"), size=0.7)+
+  geom_line(aes(y=(Fisheries-mean(Fisheries))/sd(Fisheries), colour="Fisheries landings"), size=0.7)+
+  geom_line(aes(y=(Aquaculture-mean(Aquaculture))/sd(Aquaculture), colour="Aquaculture production"), size=0.7)+
+  scale_x_continuous(limits=c(1980,2013))+
+  scale_y_continuous()+
+  scale_colour_manual("", values = cols2)+
+  geom_vline(xintercept = 1998, lty=2)+
+  geom_vline(xintercept = 2000, lty=2)+
+  labs(y=bquote(Normalised~production))+
+  theme_bw()+
+  theme(panel.grid = element_blank(),
+        #axis.title.y = element_blank(),
+        legend.position = c(0.27, 0.9), 
+        legend.text = element_text(size = 8),
+        legend.key.size =  unit(4, "mm"),
+        legend.background = element_blank())+
+  guides(colour=F)+
+  annotate("text", x = 1991, y = 2.5, label = "ENSO event", size=2.7)+
+  annotate("text", x = 2007.5, y = -0.85, label = "White-spot disease\noutbreak", size=2.7)+
+  geom_segment(aes(x = 2004 , y = -1.1 , xend =2000.5 , yend = -1.1), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
+  geom_segment(aes(x = 1995 , y = 2.5 , xend =1997.7 , yend = 2.5), size=0.5, arrow = arrow(length = unit(0.2, "cm")))+
+  ggsave("Ecuador production.tiff", device="tiff", dpi=600, width = 8.9, height = 6, units="cm")
+
+
+
+
+ggarrange(p11,p10, p9,p12, labels=c("a", "b", "c", "d"), ncol=2, nrow = 2, font.label = list(size=12))+
+ggsave(filename = "Tradeoffs and synergies2.tiff", device = "tiff", dpi = 600, width=18.3, height=12, units = "cm")+
+ggsave(filename = "Tradeoffs and synergies2.pdf", device = "pdf", dpi = 600, width=18.3, height=12, units = "cm")
+
+
 ```
 
 
@@ -8528,18 +8517,27 @@ library(ggplot2)
 #crops
 nrow(shockdrivers[shockdrivers$Sector=="Crops",])/length(levels(aggcrops$Country))
 
+(nrow(shockdrivers[shockdrivers$Sector=="Crops",])+nrow(shockdrivers[shockdrivers$Sector=="Livestock",]))/(length(levels(aggcrops$Country))+length(levels(agglivestock$Country)))
+
 #livestock
 nrow(shockdrivers[shockdrivers$Sector=="Livestock",])/length(levels(agglivestock$Country))
 
 #fisheries
 nrow(shockdrivers[shockdrivers$Sector=="Fisheries",])/length(levels(aggfisheries$Country))
 
+(nrow(shockdrivers[shockdrivers$Sector=="Fisheries",])+nrow(shockdrivers[shockdrivers$Sector=="Aquaculture",]))/(length(levels(aggfisheries$Country))+length(levels(aggaqua$Country)))
+
 #aquaculture
-nrow(shockdrivers[shockdrivers$Sector=="Aquaculture",])/length(levels(aggfisheries$Country))
+nrow(shockdrivers[shockdrivers$Sector=="Aquaculture",])/length(levels(aggaqua$Country))
 
 
 #aquaculture rates in LACa vs nezt nearest
-unique(aquacultureSR$Rate[aquacultureSR$Continent=="Latin America and Caribbean"])/unique(aquacultureSR$Rate[aquacultureSR$Continent=="South Asia"])
+unique(aquacultureSR$Rate[aquacultureSR$Continent=="South America"])/unique(aquacultureSR$Rate[aquacultureSR$Continent=="Central America"])
+
+unique(aquacultureSR$Rate[aquacultureSR$Continent=="South America"])/0.09090909
+
+
+unique(aquacultureSR$Rate)
 
 #Livestock rates in South Asia vs next highest SSA 
 unique(livestockSR$Rate[livestockSR$Continent=="South Asia"])/unique(livestockSR$Rate[livestockSR$Continent=="Africa"])
@@ -8599,7 +8597,10 @@ nrow(shockdrivers[shockdrivers$Sector=="Aquaculture" & (shockdrivers$Category=="
 
 ggplot(data=shockdrivers, aes(x=Category, y=log(AbsMagnitude)))+geom_boxplot()+geom_jitter(aes(size=Recovery, colour=Sector, alpha=0.5))
 
-
+shockdrivers2 %>% 
+  filter(Sector=="Crops") %>% 
+  group_by(SubRegion, Category) %>% 
+  count()
 
 
 
