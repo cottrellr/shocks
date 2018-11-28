@@ -4995,6 +4995,10 @@ shockcategories$Total[shockcategories$Var2=="Crops"]<- sum(shockcategories$Freq[
 shockcategories$Total[shockcategories$Var2=="Livestock"]<- sum(shockcategories$Freq[shockcategories$Var2=="Livestock"])
 shockcategories$Total[shockcategories$Var2=="Fisheries"]<- sum(shockcategories$Freq[shockcategories$Var2=="Fisheries"])
 shockcategories$Prop <- shockcategories$Freq/ shockcategories$Total
+
+shockcategories$Var2 <- factor(shockcategories$Var2, levels(shockcategories$Var2)[c(2,4,3,1)])
+shockcategories$Var1 <- factor(shockcategories$Var1, levels(shockcategories$Var1)[c(2,3,1,4,6,5,7,9,8,10)])
+
 # 
 # levels(shockdrivers$Category)
 
@@ -6652,15 +6656,16 @@ ggsave(filename = "Shock rates over time column.tiff", device = "tiff", dpi=600,
 
 
 ggarrange(ratescombined2, time_rates, nrow = 1, ncol=2)+
-  ggsave("shocks rates spatial temporal.tiff", device = "tiff", dpi=600, width = 18.3, height=20, units="cm")+
-  ggsave("shocks rates spatial temporal.pdf", device = "pdf", dpi=600, width = 18.3, height=20, units="cm")
+  ggsave("shocks rates spatial temporal.tiff", device = "tiff", dpi=600, width = 18, height=20, units="cm")+
+  ggsave("shocks rates spatial temporal.pdf", device = "pdf", dpi=600, width = 18, height=20, units="cm")
 
+#Supplementary Figure 2 - for object 'Causes' see Figure 2
 
 modellegend <- Causes+guides(fill=guide_legend(title.position = "top", title.hjust = 0.5, ncol=2))
 legend <- get_legend(modellegend)
 
 ggarrange(ggarrange(p2,p4,p6,p8, labels = c("a", "b", "c","d"), nrow=2, ncol=2, font.label = list(size=12), legend = "none"), legend, nrow = 2, ncol=1, heights = c(1,0.2))+
-  ggsave("Figure S3.tiff", device = "tiff", dpi=300, width = 18.3, height = 14, units="cm")
+  ggsave("Figure S2.tiff", device = "tiff", dpi=300, width = 18.3, height = 14, units="cm")
 
 
 # 
@@ -6682,7 +6687,7 @@ ggarrange(ggarrange(p2,p4,p6,p8, labels = c("a", "b", "c","d"), nrow=2, ncol=2, 
 
 ```{r}
 
-cols<-c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
+cols <- c("Climate/weather events"="#9e0142", "Climate/weather events & mismanagement" = "#d53e4f", "Climate/weather & geopolitical/economic events" = "#f46d43", "Geopolitical/economic events" = "#fdae61", "Mismanagement & geopolitical/economic events" = "#fee08b","Mismanagement" = "#e6f598",  "Mismanagement & policy change" = "#abdda4", "Policy change" = "#66c2a5", "Other" = "#3288bd", "Unknown"= "#5e4fa2")
 
 Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(stat="identity")+
   theme_bw()+
@@ -6710,30 +6715,30 @@ Causes<-ggplot(data=shockcategories, aes(x=Var2, y=Prop, fill=Var1))+geom_bar(st
 noleg<-ggarrange(Causes, nrow = 1, ncol = 1, legend = "none")
 
 ggarrange(noleg, get_legend(Causes), nrow=2, ncol=1, heights = c(0.9, 0.4))+
-ggsave("Drivers only.tiff", device="tiff", dpi=600, width=8.9, height=14, units = "cm")+
-ggsave("Drivers only.pdf", device= "pdf", dpi=600, width=8.9, height=14, units = "cm")
+ggsave("Drivers only.tiff", device="tiff", dpi=600, width=8.8, height=14, units = "cm")+
+ggsave("Drivers only.pdf", device= "pdf", dpi=600, width=8.8, height=14, units = "cm")
 
 
 
-pie1<-ggplot(data=shockcategories[shockcategories$Var2=="Crops",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
-  theme_bw()+
-  coord_polar("y")+
-  theme(axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        panel.border = element_blank(),
-        legend.position = "bottom", 
-        legend.text = element_text(size=9),
-        legend.key.size = unit(0.3, "cm"),
-        legend.background = element_blank(),
-        legend.title = element_text(face="bold", size=10),
-        plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
-  scale_fill_manual(values=cols)+
-  #scale_y_continuous(limits = c(0, 1.06))+
-  labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
-
-driverlegend<-get_legend(pie1)
+# pie1<-ggplot(data=shockcategories[shockcategories$Var2=="Crops",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
+#   theme_bw()+
+#   coord_polar("y")+
+#   theme(axis.title.x = element_blank(),
+#         axis.text.x = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.grid = element_blank(),
+#         panel.border = element_blank(),
+#         legend.position = "bottom", 
+#         legend.text = element_text(size=9),
+#         legend.key.size = unit(0.3, "cm"),
+#         legend.background = element_blank(),
+#         legend.title = element_text(face="bold", size=10),
+#         plot.margin = unit(c(t=0,r=0,b=0.5,l=-0.9), "cm"))+
+#   scale_fill_manual(values=cols)+
+#   #scale_y_continuous(limits = c(0, 1.06))+
+#   labs(x="", y=bquote(Prop.~of~shocks), fill="Driver of shock")+guides(fill=guide_legend(title.position = "top", title.hjust =0.5, ncol = 2))
+# 
+# driverlegend<-get_legend(pie1)
 
 # pie2<-ggplot(data=shockcategories[shockcategories$Var2=="Livestock",], aes(x="", y=Prop, fill=Var1))+geom_bar(stat="identity")+
 #   theme_bw()+
@@ -7016,8 +7021,8 @@ heat_map_country <- ggplot(data=synchrony %>%
 legend <-  get_legend(heat_map)
 
 ggarrange(ggarrange(heat_map, heat_map_country, labels=c("a","b"), nrow=1, ncol=2, legend = F), legend, nrow=2, ncol=1, heights = c(1,0.1), font.label = list(size=12)) +
-  ggsave("heatmap3.tiff", device="tiff", dpi=600, width = 18.3, height=15, units="cm")+
-  ggsave("heatmap3.pdf", device="pdf", dpi=600, width = 18.3, height=15, units="cm")
+  ggsave("heatmap3.tiff", device="tiff", dpi=600, width = 18, height=15, units="cm")+
+  ggsave("heatmap3.pdf", device="pdf", dpi=600, width = 18, height=15, units="cm")
 
 
 ```
@@ -7199,8 +7204,8 @@ p12 <-
 
 
 ggarrange(p11,p10, p9,p12, labels=c("a", "b", "c", "d"), ncol=2, nrow = 2, font.label = list(size=12))+
-ggsave(filename = "Tradeoffs and synergies2.tiff", device = "tiff", dpi = 600, width=18.3, height=12, units = "cm")+
-ggsave(filename = "Tradeoffs and synergies2.pdf", device = "pdf", dpi = 600, width=18.3, height=12, units = "cm")
+ggsave(filename = "Tradeoffs and synergies2.tiff", device = "tiff", dpi = 600, width=18, height=12, units = "cm")+
+ggsave(filename = "Tradeoffs and synergies2.pdf", device = "pdf", dpi = 600, width=18, height=12, units = "cm")
 
 
 ```
