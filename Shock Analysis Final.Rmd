@@ -7075,7 +7075,7 @@ Dom$Year <- as.numeric(Dom$Year)
 
 
 
-cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="black", "Aquaculture production")
+cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="black", "Aquaculture production"="grey50")
 
 p9<-ggplot(data = Dom, aes(x=Year))+
   #geom_point(aes(y=(Value-mean(Value))/sd(Value)), colour="firebrick")+
@@ -7171,6 +7171,8 @@ p11 <-
   guides(colour=F)+
   ggsave("Kuwait production.tiff", device="tiff", dpi=600, width = 8.9, height = 6, units="cm")
 
+
+cols2<-c("Fisheries landings" ="dodgerblue", "Crop production"="firebrick", "Livestock production"="black", "Aquaculture production"="grey50")
 
 Ecuador <-  data_frame(Year = 1961:2013, Crops = aggcrops$Value[aggcrops$Country=="Ecuador"], Fisheries = aggfisheries$Value[aggfisheries$Country=="Ecuador"], Aquaculture = aggaqua$Value[aggaqua$Country=="Ecuador"])
 
