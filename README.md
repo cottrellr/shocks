@@ -1,6 +1,6 @@
 # shocks
 
-#This is the repository holding the raw production data and code used by Cottrell et al. to create global analyses of 'shocks' to food production data across land and sea. This is the repository associated with the publication 'Food production shocks across land and sea' in Nature sustainability doi: TBA 
+#This is the repository holding the raw production data and code used by Cottrell et al. to create global analyses of 'shocks' to food production data across land and sea. This is the repository associated with the publication 'Food production shocks across land and sea' in Nature sustainability doi: https://doi.org/10.1038/s41893-018-0210-1 
 
 #Production data files are separated for crop, livestock, inland fisheries and marine fisheries, and aquaculture. The aquaculture file separates out Inland or Marine production as "Inland Water" or "Marine Areas". These have been used to divide the two in this analysis.
 Within this repository are the shapefiles taken from the Natural Earth shapefile downloads page https://www.naturalearthdata.com/downloads/ to map data on country-level polygons.
